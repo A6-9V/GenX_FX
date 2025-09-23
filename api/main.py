@@ -25,7 +25,8 @@ async def root():
         "version": "1.0.0",
         "status": "running",
         "github": "Mouy-leng",
-        "repository": "https://github.com/Mouy-leng/GenX_FX.git"
+        "repository": "https://github.com/Mouy-leng/GenX_FX.git",
+        "docs": "/docs"
     }
 
 @app.get("/health")
