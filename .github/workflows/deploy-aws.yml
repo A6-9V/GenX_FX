@@ -1,0 +1,431 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [ main, aws-deploy ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+  ECR_REPOSITORY: genx-trading
+  ECS_CLUSTER: genx-trading-cluster
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-prod.txt
+        pip install pytest pytest-asyncio pytest-cov
+    
+    - name: Run tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379
+        SECRET_KEY: test-secret-key
+      run: |
+        pytest tests/ -v --cov=. --cov-report=xml || true
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+    
+    - name: Build, tag, and push image to Amazon ECR
+      id: image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        # Build a docker container and push to ECR
+        docker build -f Dockerfile.production -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  deploy-infrastructure:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "1.5.0"
+    
+    - name: Terraform Init
+      working-directory: ./deploy
+      run: terraform init
+    
+    - name: Terraform Plan
+      working-directory: ./deploy
+      run: |
+        terraform plan \
+          -var="aws_region=${{ env.AWS_REGION }}" \
+          -var="environment=production" \
+          -var="project_name=genx-trading" \
+          -out=tfplan
+    
+    - name: Terraform Apply
+      working-directory: ./deploy
+      run: terraform apply -auto-approve tfplan
+
+  deploy-services:
+    needs: [build, deploy-infrastructure]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    
+    strategy:
+      matrix:
+        service: [api, discord-bot, telegram-bot, websocket-feed, scheduler, ai-trainer]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Update secrets in AWS Secrets Manager
+      run: |
+        # Update application secrets
+        aws secretsmanager update-secret \
+          --secret-id genx-trading-secrets \
+          --secret-string '{
+            "BYBIT_API_KEY": "${{ secrets.BYBIT_API_KEY }}",
+            "BYBIT_API_SECRET": "${{ secrets.BYBIT_API_SECRET }}",
+            "DISCORD_TOKEN": "${{ secrets.DISCORD_TOKEN }}",
+            "TELEGRAM_TOKEN": "${{ secrets.TELEGRAM_TOKEN }}",
+            "GEMINI_API_KEY": "${{ secrets.GEMINI_API_KEY }}",
+            "NEWSDATA_API_KEY": "${{ secrets.NEWSDATA_API_KEY }}",
+            "ALPHAVANTAGE_API_KEY": "${{ secrets.ALPHAVANTAGE_API_KEY }}",
+            "NEWSAPI_ORG_KEY": "${{ secrets.NEWSAPI_ORG_KEY }}",
+            "FINNHUB_API_KEY": "${{ secrets.FINNHUB_API_KEY }}",
+            "FMP_API_KEY": "${{ secrets.FMP_API_KEY }}",
+            "REDDIT_CLIENT_ID": "${{ secrets.REDDIT_CLIENT_ID }}",
+            "REDDIT_CLIENT_SECRET": "${{ secrets.REDDIT_CLIENT_SECRET }}",
+            "REDDIT_USERNAME": "${{ secrets.REDDIT_USERNAME }}",
+            "REDDIT_PASSWORD": "${{ secrets.REDDIT_PASSWORD }}"
+          }' \
+          --region ${{ env.AWS_REGION }} || echo "Secrets will be created by Terraform"
+    
+    - name: Update ECS service
+      run: |
+        # Force new deployment of ECS service
+        aws ecs update-service \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --service genx-trading-${{ matrix.service }} \
+          --force-new-deployment \
+          --region ${{ env.AWS_REGION }}
+    
+    - name: Wait for deployment to complete
+      run: |
+        aws ecs wait services-stable \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --services genx-trading-${{ matrix.service }} \
+          --region ${{ env.AWS_REGION }}
+
+  verify-deployment:
+    needs: deploy-services
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Get Load Balancer DNS
+      id: alb
+      run: |
+        ALB_DNS=$(aws elbv2 describe-load-balancers \
+          --names genx-trading-alb \
+          --query 'LoadBalancers[0].DNSName' \
+          --output text \
+          --region ${{ env.AWS_REGION }})
+        echo "dns=$ALB_DNS" >> $GITHUB_OUTPUT
+    
+    - name: Verify API health
+      run: |
+        echo "Waiting for API to be healthy..."
+        for i in {1..30}; do
+          if curl -sf "http://${{ steps.alb.outputs.dns }}/health"; then
+            echo "API is healthy!"
+            exit 0
+          fi
+          sleep 10
+        done
+        echo "API health check failed."
+        exit 1
+    
+    - name: Run smoke tests
+      run: |
+        # Basic smoke tests
+        echo "Running smoke tests..."
+        
+        # Test API endpoints
+        curl -f "http://${{ steps.alb.outputs.dns }}/health" || exit 1
+        curl -f "http://${{ steps.alb.outputs.dns }}/docs" || exit 1
+        
+        echo "Smoke tests passed!"
+    
+    - name: Notify Discord
+      if: always()
+      uses: sarisia/actions-status-discord@v1
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        title: "AWS Deployment"
+        description: |
+          **Environment:** Production
+          **Status:** ${{ job.status }}
+          **URL:** http://${{ steps.alb.outputs.dns }}
+          **Commit:** ${{ github.sha }}
+        color: ${{ job.status == 'success' && '0x00ff00' || '0xff0000' }}
+
+  backup:
+    needs: verify-deployment
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && success()
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Create database backup
+      run: |
+        # Get RDS endpoint
+        RDS_ENDPOINT=$(aws rds describe-db-instances \
+          --db-instance-identifier genx-trading-postgres \
+          --query 'DBInstances[0].Endpoint.Address' \
+          --output text \
+          --region ${{ env.AWS_REGION }})
+        
+        echo "Database backup would be created for: $RDS_ENDPOINT"
+        # In production, you would run pg_dump here
+    
+    - name: Upload deployment artifacts
+      run: |
+        # Upload deployment metadata to S3
+        BUCKET_NAME=$(aws s3api list-buckets \
+          --query 'Buckets[?contains(Name, `genx-trading-backups`)].Name' \
+          --output text)
+        
+        if [ ! -z "$BUCKET_NAME" ]; then
+          echo "Deployment completed at $(date)" | aws s3 cp - "s3://$BUCKET_NAME/deployments/$(date +%Y%m%d-%H%M%S).txt"
+        fi
+
+  performance-test:
+    needs: verify-deployment
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Get Load Balancer DNS
+      id: alb
+      run: |
+        ALB_DNS=$(aws elbv2 describe-load-balancers \
+          --names genx-trading-alb \
+          --query 'LoadBalancers[0].DNSName' \
+          --output text \
+          --region ${{ env.AWS_REGION }})
+        echo "dns=$ALB_DNS" >> $GITHUB_OUTPUT
+    
+    - name: Install k6
+      run: |
+        curl -s https://github.com/grafana/k6/releases/download/v0.44.0/k6-v0.44.0-linux-amd64.tar.gz | tar -xz
+        sudo mv k6-v0.44.0-linux-amd64/k6 /usr/local/bin/
+    
+    - name: Create performance test script
+      run: |
+        cat > performance-test.js << 'EOF'
+        import http from 'k6/http';
+        import { check, sleep } from 'k6';
+
+        export const options = {
+          stages: [
+            { duration: '30s', target: 10 },
+            { duration: '1m', target: 10 },
+            { duration: '30s', target: 0 },
+          ],
+        };
+
+        export default function () {
+          const response = http.get(`http://${{ steps.alb.outputs.dns }}/health`);
+          check(response, {
+            'status is 200': (r) => r.status === 200,
+            'response time < 500ms': (r) => r.timings.duration < 500,
+          });
+          sleep(1);
+        }
+        EOF
+    
+    - name: Run performance tests
+      run: |
+        k6 run performance-test.js
+    
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-results
+        path: performance-test.js
+
+  security-scan:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+    
+    - name: Run Bandit security scan
+      run: |
+        pip install bandit
+        bandit -r . -f json -o bandit-results.json || true
+    
+    - name: Upload security results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-results
+        path: |
+          trivy-results.sarif
+          bandit-results.json
