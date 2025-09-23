@@ -1,0 +1,21 @@
+{
+  "railway": {
+    "service": "Python Trading API",
+    "role": "Live signal generation, API endpoints",
+    "url": "https://genx-api.railway.app",
+    "resources": "512MB RAM, Free tier"
+  },
+  "render": {
+    "frontend": "React Dashboard",
+    "server": "Node.js Backend",
+    "role": "User interface, WebSocket connections",
+    "url": "https://genx-frontend.onrender.com",
+    "resources": "512MB RAM, Free tier"
+  },
+  "google_vm": {
+    "service": "AI Training & Backtesting",
+    "role": "Heavy ML workloads, historical analysis",
+    "status": "Running (assumed)",
+    "resources": "Variable based on VM size"
+  }
+}

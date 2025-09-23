@@ -1,0 +1,36 @@
+name: Deploy to Railway
+
+on:
+  push:
+    branches: 
+      - main
+      - cursor/deploy-to-multiple-environments-with-cursor-agent-1f4e
+  workflow_dispatch:
+
+env:
+  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install Railway CLI
+      run: |
+        curl -fsSL https://railway.app/install.sh | sh
+        echo "$HOME/.railway/bin" >> $GITHUB_PATH
+        
+    - name: Deploy to Railway
+      run: |
+        railway login --token $RAILWAY_TOKEN
+        railway up --dockerfile Dockerfile.railway --service genx-api
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        
+    - name: Get deployment URL
+      run: |
+        echo "🚀 Deployment completed!"
+        echo "API URL: https://genx-api.railway.app"

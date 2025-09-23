@@ -1,0 +1,32 @@
+services:
+  # Frontend React App
+  - type: web
+    name: genx-frontend
+    env: static
+    buildCommand: npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://genx-api.railway.app
+      - key: NODE_ENV
+        value: production
+
+  # Node.js Backend Server  
+  - type: web
+    name: genx-server
+    env: node
+    buildCommand: npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: API_BASE_URL
+        value: https://genx-api.railway.app
+    
+databases:
+  # PostgreSQL Database for Node.js server
+  - name: genx-postgres
+    databaseName: genx_trading
+    user: genx_user
