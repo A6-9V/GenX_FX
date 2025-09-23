@@ -1,0 +1,71 @@
+# Cloud Build Optimized Dockerfile for GenX Trading Platform
+# This version includes all necessary build tools and uses wheels
+
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies including build tools and TA-Lib
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    g++ \
+    wget \
+    curl \
+    unzip \
+    libc6-dev \
+    make \
+    pkg-config \
+    && wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz -q -O -> /tmp/ta-lib-0.4.0-src.tar.gz && \
+    tar -xzf /tmp/ta-lib-0.4.0-src.tar.gz -C /tmp && \
+    cd /tmp/ta-lib && \
+    ./configure --prefix=/usr && \
+    make && \
+    make install && \
+    cd / && \
+    rm -rf /tmp/ta-lib* && \
+    rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip and install build tools
+RUN pip install --upgrade pip setuptools wheel
+
+# Copy requirements first for better caching
+COPY requirements.txt ./requirements.txt
+
+# Install Python dependencies using wheels when possible
+RUN pip install --no-cache-dir --prefer-binary -r requirements.txt
+
+# Copy application files
+COPY main.py ./
+COPY core/ ./core/
+COPY config/ ./config/
+COPY utils/ ./utils/
+COPY api/ ./api/
+COPY services/ ./services/
+COPY shared/ ./shared/
+COPY database/ ./database/
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data /app/signals
+
+# Create non-root user for security
+RUN adduser --disabled-password --gecos '' --uid 1000 appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+# Expose port for Cloud Run
+EXPOSE 8080
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV TRADING_MODE=cloud
+ENV BROKER=exness
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Start the application
+CMD ["python", "main.py", "--mode", "cloud", "--port", "8080"]

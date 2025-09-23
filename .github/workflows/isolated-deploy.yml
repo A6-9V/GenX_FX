@@ -1,0 +1,134 @@
+name: Isolated Deploy Per Branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_branch:
+        description: 'Base branch to deploy from'
+        required: true
+        default: 'main'
+        type: string
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      region:
+        description: 'AWS region'
+        required: true
+        default: 'us-east-1'
+        type: string
+      cleanup_branch:
+        description: 'Delete the temporary deploy branch after successful deployment'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  AWS_REGION: ${{ github.event.inputs.region || 'us-east-1' }}
+  ENVIRONMENT: ${{ github.event.inputs.environment || 'production' }}
+
+jobs:
+  isolated-deploy:
+    name: Deploy with isolated container and temporary branch
+    runs-on: ubuntu-latest
+    # Run the whole job inside one container; use Docker-in-Docker service for building images
+    container:
+      image: ubuntu:22.04
+      options: --privileged
+    services:
+      docker:
+        image: docker:24-dind
+        options: --privileged
+        env:
+          DOCKER_TLS_CERTDIR: ''
+        ports:
+          - 2375:2375
+    env:
+      DOCKER_HOST: tcp://docker:2375
+      DOCKER_TLS_CERTDIR: ''
+      DOCKER_CLI_EXPERIMENTAL: enabled
+      AWS_REGION: ${{ env.AWS_REGION }}
+      ENVIRONMENT: ${{ env.ENVIRONMENT }}
+
+    steps:
+      - name: Prepare container tools (git, curl, AWS CLI v2, docker-cli, jq, openssl)
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            ca-certificates curl gnupg git jq openssl unzip docker.io
+          rm -rf /var/lib/apt/lists/*
+          # Install AWS CLI v2
+          curl -sSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+          unzip -q /tmp/awscliv2.zip -d /tmp
+          /tmp/aws/install --update
+          rm -rf /tmp/aws /tmp/awscliv2.zip
+          aws --version
+          docker version || true
+
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.base_branch }}
+          fetch-depth: 0
+
+      - name: Configure Git for pushing
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create deploy branch
+        id: branch
+        run: |
+          BRANCH_NAME="deploy/${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+          git switch -c "$BRANCH_NAME"
+          git push --set-upstream origin "$BRANCH_NAME"
+
+      - name: Clean workspace
+        run: |
+          git clean -fdx
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify Docker and AWS connectivity
+        run: |
+          aws sts get-caller-identity
+          docker info
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Run isolated deploy
+        run: |
+          chmod +x deploy/aws-deploy.sh
+          ./deploy/aws-deploy.sh \
+            --region "${AWS_REGION}" \
+            --environment "${ENVIRONMENT}"
+
+      - name: Optional cleanup - delete temporary deploy branch
+        if: ${{ success() && inputs.cleanup_branch == 'true' }}
+        run: |
+          git push origin --delete "${{ steps.branch.outputs.branch_name }}" || true
+
+      - name: Cleanup Docker resources
+        if: always()
+        run: |
+          docker system prune -af || true
