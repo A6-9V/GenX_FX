@@ -1,0 +1,174 @@
+# DigitalOcean App Platform Configuration
+name: genx-trading-platform
+services:
+  # Main API Service
+  - name: api
+    source_dir: /
+    dockerfile_path: Dockerfile.production
+    github:
+      repo: Mouy-leng/GenX-EA_Script
+      branch: main
+    run_command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 4
+    environment_slug: python
+    instance_count: 2
+    instance_size_slug: professional-xs
+    http_port: 8000
+    health_check:
+      http_path: /health
+    envs:
+      - key: DATABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: MONGODB_URL
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: REDIS_URL
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: SECRET_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: BYBIT_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: BYBIT_API_SECRET
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: LOG_LEVEL
+        value: INFO
+        scope: RUN_AND_BUILD_TIME
+
+  # Discord Bot Worker
+  - name: discord-bot
+    source_dir: /
+    dockerfile_path: Dockerfile.production
+    github:
+      repo: Mouy-leng/GenX-EA_Script
+      branch: main
+    run_command: python services/discord_bot.py
+    environment_slug: python
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: DISCORD_TOKEN
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: DATABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: API_URL
+        value: https://genx-trading-platform-api.ondigitalocean.app
+        scope: RUN_AND_BUILD_TIME
+
+  # Telegram Bot Worker
+  - name: telegram-bot
+    source_dir: /
+    dockerfile_path: Dockerfile.production
+    github:
+      repo: Mouy-leng/GenX-EA_Script
+      branch: main
+    run_command: python services/telegram_bot.py
+    environment_slug: python
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: TELEGRAM_TOKEN
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: DATABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: API_URL
+        value: https://genx-trading-platform-api.ondigitalocean.app
+        scope: RUN_AND_BUILD_TIME
+
+  # WebSocket Feed Worker
+  - name: websocket-feed
+    source_dir: /
+    dockerfile_path: Dockerfile.production
+    github:
+      repo: Mouy-leng/GenX-EA_Script
+      branch: main
+    run_command: python services/websocket_feed.py
+    environment_slug: python
+    instance_count: 1
+    instance_size_slug: basic-xs
+    envs:
+      - key: REDIS_URL
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: DATABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: BYBIT_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: BYBIT_API_SECRET
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+
+  # AI Model Training Worker
+  - name: ai-trainer
+    source_dir: /
+    dockerfile_path: Dockerfile.production
+    github:
+      repo: Mouy-leng/GenX-EA_Script
+      branch: main
+    run_command: python services/ai_trainer.py
+    environment_slug: python
+    instance_count: 1
+    instance_size_slug: professional-xs
+    envs:
+      - key: DATABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: MONGODB_URL
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+
+databases:
+  # PostgreSQL Database
+  - name: genx-postgres
+    engine: PG
+    version: "15"
+    size: basic
+    num_nodes: 1
+    
+  # MongoDB Database
+  - name: genx-mongo
+    engine: MONGODB
+    version: "6"
+    size: basic
+    num_nodes: 1
+    
+  # Redis Cache
+  - name: genx-redis
+    engine: REDIS
+    version: "7"
+    size: basic
+    num_nodes: 1
+
+# Load balancer and domains
+domains:
+  - domain: api.genx-trading.com
+    type: PRIMARY
+    wildcard: false
+    certificate_id: your-certificate-id
+
+# Alerts and monitoring
+alerts:
+  - rule: CPU_UTILIZATION
+    value: 80
+    operator: GREATER_THAN
+    window: 10m
+    disabled: false
+  - rule: MEM_UTILIZATION
+    value: 80
+    operator: GREATER_THAN
+    window: 10m
+    disabled: false
+  - rule: RESTART_COUNT
+    value: 5
+    operator: GREATER_THAN
+    window: 10m
+    disabled: false
