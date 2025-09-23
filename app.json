@@ -1,0 +1,64 @@
+{
+  "name": "amp-system",
+  "description": "Advanced Multi-Platform (AMP) Trading System - AI-powered Forex trading platform",
+  "repository": "https://github.com/lengkundee/amp-system",
+  "logo": "https://node-js-sample.herokuapp.com/node.png",
+  "keywords": ["trading", "forex", "ai", "fastapi", "python"],
+  "image": "heroku/python",
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:mini"
+    }
+  ],
+  "env": {
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production"
+    },
+    "PYTHON_ENV": {
+      "description": "Python environment",
+      "value": "production"
+    },
+    "PORT": {
+      "description": "Port for the application",
+      "value": "8000"
+    },
+    "DATABASE_URL": {
+      "description": "Database connection URL",
+      "required": false
+    },
+    "REDIS_URL": {
+      "description": "Redis connection URL for caching",
+      "required": false
+    },
+    "SECRET_KEY": {
+      "description": "Secret key for application security",
+      "generator": "secret"
+    },
+    "CORS_ORIGINS": {
+      "description": "Allowed CORS origins",
+      "value": "*"
+    },
+    "LOG_LEVEL": {
+      "description": "Logging level",
+      "value": "INFO"
+    }
+  },
+  "scripts": {
+    "postdeploy": "python -c \"print('Post-deploy script completed')\""
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    },
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
