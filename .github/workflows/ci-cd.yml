@@ -1,0 +1,92 @@
+# .github/workflows/ci-cd.yml
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    # Run on all branches
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # This job runs on all branches EXCEPT main
+  test:
+    # The 'if' condition ensures this job only runs on pushes to branches that are not 'main'
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Setup Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # Specify your Node.js version
+
+      # Install Node.js dependencies and run tests
+      - name: Install Node.js dependencies and run tests
+        run: |
+          npm install
+          npm test
+        working-directory: ./ # Adjust if your package.json is in a subdirectory
+
+      # Setup Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.7'
+
+      # Install Python dependencies and run tests
+      - name: Install Python dependencies and run tests
+        env:
+          PYTHONPATH: .
+          # Add other necessary environment variables for tests
+          # Using dummy values for secrets as in the original file
+          EXNESS_LOGIN: "dummy_login"
+          EXNESS_PASSWORD: "dummy_password"
+          EXNESS_SERVER: "dummy_server"
+          AMP_TOKEN: "dummy_token"
+          FXCM_API_KEY: "dummy_key"
+          FXCM_SECRET_KEY: "dummy_secret"
+          GEMINI_API_KEY: "dummy_key"
+          OPENAI_API_KEY: "dummy_key"
+          ALPHA_VANTAGE_API_KEY: "dummy_key"
+          NEWS_API_KEY: "dummy_key"
+          POSTGRES_DB: "amp_trading"
+          POSTGRES_USER: "amp_user"
+          POSTGRES_PASSWORD: "amp_password"
+          POSTGRES_HOST: "localhost"
+          POSTGRES_PORT: "5432"
+          REDIS_HOST: "localhost"
+          REDIS_PORT: "6379"
+          AMP_ENV: "test"
+          LOG_LEVEL: "INFO"
+          DEBUG: "false"
+          API_PORT: "8000"
+          GRAFANA_PORT: "3000"
+          JWT_SECRET_KEY: "test-secret-key"
+          DATABASE_URL: "postgresql://amp_user:amp_password@localhost:5432/amp_trading"
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pytest
+
+  # This job runs ONLY on the main branch
+  deploy:
+    # The 'if' condition ensures this job only runs on pushes to the 'main' branch
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # This is a placeholder for your deployment script
+      - name: Simulate Deployment
+        run: |
+          echo "Deploying to production..."
+          echo "Deployment successful!"
