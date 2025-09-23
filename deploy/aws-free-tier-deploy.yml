@@ -1,0 +1,404 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'GenX FX Trading Platform - AWS Free Tier Deployment'
+
+Parameters:
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: EC2 Key Pair for SSH access
+    Default: genx-fx-key
+
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    Description: EC2 instance type (Free Tier eligible)
+    AllowedValues:
+      - t2.micro
+      - t3.micro
+
+  Environment:
+    Type: String
+    Default: production
+    Description: Environment name
+
+Resources:
+  # VPC and Networking
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-vpc'
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-igw'
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-public-subnet'
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-public-rt'
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  # Security Groups
+  WebSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for GenX FX web server
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+          Description: SSH access
+        - IpProtocol: tcp
+          FromPort: 8000
+          ToPort: 8000
+          CidrIp: 0.0.0.0/0
+          Description: GenX FX API
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: HTTP
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: HTTPS
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-web-sg'
+
+  # IAM Role for EC2
+  EC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+      Policies:
+        - PolicyName: GenXFXPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogStreams
+                Resource: '*'
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref EC2Role
+
+  # EC2 Instance
+  GenXFXInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0c55b159cbfafe1d0  # Amazon Linux 2 AMI (will be updated by AWS)
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        - !Ref WebSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 30
+            VolumeType: gp2
+            DeleteOnTermination: true
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y docker git htop
+
+          # Start Docker
+          systemctl start docker
+          systemctl enable docker
+          usermod -a -G docker ec2-user
+
+          # Install Docker Compose
+          curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+
+          # Clone the repository
+          cd /home/ec2-user
+          git clone https://github.com/Mouy-leng/GenX_FX.git
+          chown -R ec2-user:ec2-user GenX_FX
+          cd GenX_FX
+
+          # Create optimized Dockerfile for Free Tier
+          cat > Dockerfile.free-tier << 'EOF'
+          FROM python:3.9-slim
+
+          WORKDIR /app
+
+          # Install system dependencies
+          RUN apt-get update && apt-get install -y \
+              gcc \
+              g++ \
+              && rm -rf /var/lib/apt/lists/*
+
+          # Copy requirements and install Python dependencies
+          COPY requirements-free-tier.txt .
+          RUN pip install --no-cache-dir -r requirements-free-tier.txt
+
+          # Copy application code
+          COPY . .
+
+          # Expose port
+          EXPOSE 8000
+
+          # Health check
+          HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+            CMD curl -f http://localhost:8000/health || exit 1
+
+          # Run the application
+          CMD ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+          EOF
+
+          # Create minimal requirements file
+          cat > requirements-free-tier.txt << 'EOF'
+          fastapi==0.104.1
+          uvicorn[standard]==0.24.0
+          pandas==2.1.3
+          numpy==1.24.3
+          python-multipart==0.0.6
+          pydantic==2.5.0
+          requests==2.31.0
+          python-dotenv==1.0.0
+          aiofiles==23.2.1
+          EOF
+
+          # Create environment file
+          cat > .env << 'EOF'
+          ENVIRONMENT=production
+          LOG_LEVEL=INFO
+          API_HOST=0.0.0.0
+          API_PORT=8000
+          ENABLE_CORS=true
+          MAX_WORKERS=2
+          EOF
+
+          # Build and run the Docker container
+          docker build -f Dockerfile.free-tier -t genx-fx:latest .
+          
+          # Run the container with resource limits for Free Tier
+          docker run -d \
+            --name genx-fx \
+            --restart unless-stopped \
+            -p 8000:8000 \
+            -v /home/ec2-user/GenX_FX/data:/app/data \
+            -v /home/ec2-user/GenX_FX/logs:/app/logs \
+            --memory="900m" \
+            --cpus="0.8" \
+            --env-file .env \
+            genx-fx:latest
+
+          # Install CloudWatch agent
+          wget https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+          rpm -U ./amazon-cloudwatch-agent.rpm
+
+          # Configure CloudWatch agent
+          cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json << 'EOF'
+          {
+            "logs": {
+              "logs_collected": {
+                "files": {
+                  "collect_list": [
+                    {
+                      "file_path": "/home/ec2-user/GenX_FX/logs/*.log",
+                      "log_group_name": "/aws/ec2/genx-fx",
+                      "log_stream_name": "{instance_id}/application.log"
+                    }
+                  ]
+                }
+              }
+            },
+            "metrics": {
+              "namespace": "GenXFX/EC2",
+              "metrics_collected": {
+                "cpu": {
+                  "measurement": ["cpu_usage_idle", "cpu_usage_iowait", "cpu_usage_user", "cpu_usage_system"],
+                  "metrics_collection_interval": 300
+                },
+                "disk": {
+                  "measurement": ["used_percent"],
+                  "metrics_collection_interval": 300,
+                  "resources": ["*"]
+                },
+                "mem": {
+                  "measurement": ["mem_used_percent"],
+                  "metrics_collection_interval": 300
+                }
+              }
+            }
+          }
+          EOF
+
+          # Start CloudWatch agent
+          /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+
+          # Create startup script for automatic recovery
+          cat > /home/ec2-user/start-genx.sh << 'EOF'
+          #!/bin/bash
+          cd /home/ec2-user/GenX_FX
+          docker start genx-fx 2>/dev/null || docker run -d \
+            --name genx-fx \
+            --restart unless-stopped \
+            -p 8000:8000 \
+            -v /home/ec2-user/GenX_FX/data:/app/data \
+            -v /home/ec2-user/GenX_FX/logs:/app/logs \
+            --memory="900m" \
+            --cpus="0.8" \
+            --env-file .env \
+            genx-fx:latest
+          EOF
+
+          chmod +x /home/ec2-user/start-genx.sh
+          chown ec2-user:ec2-user /home/ec2-user/start-genx.sh
+
+          # Add to crontab for auto-restart
+          echo "@reboot /home/ec2-user/start-genx.sh" | crontab -u ec2-user -
+
+          # Create health monitoring script
+          cat > /home/ec2-user/health-check.sh << 'EOF'
+          #!/bin/bash
+          if ! curl -f http://localhost:8000/health >/dev/null 2>&1; then
+            echo "$(date): GenX FX is down, restarting..." >> /home/ec2-user/GenX_FX/logs/health.log
+            docker restart genx-fx
+          fi
+          EOF
+
+          chmod +x /home/ec2-user/health-check.sh
+          chown ec2-user:ec2-user /home/ec2-user/health-check.sh
+
+          # Add health check to crontab (every 5 minutes)
+          echo "*/5 * * * * /home/ec2-user/health-check.sh" | crontab -u ec2-user -
+
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-instance'
+        - Key: Environment
+          Value: !Ref Environment
+
+  # CloudWatch Log Group
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/ec2/genx-fx
+      RetentionInDays: 14
+
+  # CloudWatch Alarms
+  CPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: High CPU utilization alarm
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: InstanceId
+          Value: !Ref GenXFXInstance
+      AlarmActions:
+        - !Ref SNSTopic
+
+  # SNS Topic for notifications
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub '${AWS::StackName}-alerts'
+      DisplayName: GenX FX Alerts
+
+Outputs:
+  PublicIP:
+    Description: Public IP address of the GenX FX instance
+    Value: !GetAtt GenXFXInstance.PublicIp
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicIP'
+
+  InstanceId:
+    Description: Instance ID of the GenX FX server
+    Value: !Ref GenXFXInstance
+    Export:
+      Name: !Sub '${AWS::StackName}-InstanceId'
+
+  WebURL:
+    Description: URL of the GenX FX trading platform
+    Value: !Sub 'http://${GenXFXInstance.PublicIp}:8000'
+    Export:
+      Name: !Sub '${AWS::StackName}-WebURL'
+
+  SignalsURL:
+    Description: URL for real-time trading signals
+    Value: !Sub 'http://${GenXFXInstance.PublicIp}:8000/MT4_Signals.csv'
+    Export:
+      Name: !Sub '${AWS::StackName}-SignalsURL'
+
+  SSHCommand:
+    Description: SSH command to connect to the instance
+    Value: !Sub 'ssh -i ${KeyPairName}.pem ec2-user@${GenXFXInstance.PublicIp}'
+    Export:
+      Name: !Sub '${AWS::StackName}-SSHCommand'
+
+  LogGroupName:
+    Description: CloudWatch Log Group name
+    Value: !Ref LogGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-LogGroup'
