@@ -1,0 +1,24 @@
+{
+  "commands": {
+    "test": "PYTHONPATH=. pytest tests/ -v --cov=. --cov-report=xml"
+  },
+  "plugins": [
+    "jules_plugin",
+    "codacy_plugin",
+    "license_checker.py",
+    "amp_adapter",
+    "trading_system",
+    "ai_analyzer.py",
+    "config_manager"
+  ],
+  "git": {
+    "github": {
+      "username": "your-username",
+      "token": "your-token"
+    },
+    "gitlab": {
+      "username": "your-username",
+      "token": "your-token"
+    }
+  }
+}
