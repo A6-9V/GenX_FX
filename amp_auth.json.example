@@ -1,0 +1,7 @@
+{
+  "user_id": "your-user-id-here",
+  "session_hash": "your-session-hash-here",
+  "session_token": "your-session-token-here",
+  "authenticated_at": "yyyy-mm-ddTHH:MM:SS.ffffff",
+  "expires_at": "yyyy-mm-ddTHH:MM:SS.ffffff"
+}
