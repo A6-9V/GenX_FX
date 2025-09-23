@@ -1,0 +1,53 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      service_name:
+        description: Cloud Run service name
+        required: true
+        default: genx-api
+      region:
+        description: GCP region
+        required: true
+        default: us-central1
+
+concurrency:
+  group: cloudrun-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Enable Cloud Run API (idempotent)
+        run: gcloud services enable run.googleapis.com
+
+      - name: Deploy to Cloud Run (builds from source or Dockerfile via Cloud Build)
+        shell: bash
+        run: |
+          REGION="${{ github.event.inputs.region }}"
+          SERVICE="${{ github.event.inputs.service_name }}"
+          REGION="${REGION:-us-central1}"
+          SERVICE="${SERVICE:-genx-api}"
+          echo "Deploying service: $SERVICE to region: $REGION in project: ${{ secrets.GCP_PROJECT_ID }}"
+          gcloud run deploy "$SERVICE" \
+            --source . \
+            --region "$REGION" \
+            --platform managed \
+            --allow-unauthenticated
