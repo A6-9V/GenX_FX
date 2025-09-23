@@ -1,0 +1,31 @@
+# AWS Deployment Configuration for GenX Trading Platform
+# Copy this file to terraform.tfvars and update with your values
+
+# AWS Configuration
+aws_region      = "us-east-1"
+environment     = "production"
+project_name    = "genx-trading"
+
+# Optional: Custom domain configuration
+# domain_name     = "trading.yourdomain.com"
+# certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
+
+# Monitoring
+alert_email = "admin@yourdomain.com"
+
+# Example values for different environments:
+#
+# Development:
+# aws_region   = "us-east-1"
+# environment  = "development"
+# project_name = "genx-trading-dev"
+#
+# Staging:
+# aws_region   = "us-east-1" 
+# environment  = "staging"
+# project_name = "genx-trading-staging"
+#
+# Production:
+# aws_region   = "us-east-1"
+# environment  = "production"
+# project_name = "genx-trading"
