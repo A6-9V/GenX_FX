@@ -4,129 +4,13 @@
 
 ### **Step 1: Create Environment File**
 
-Create a `.env` file in your project root with the following structure:
+Create a `.env` file in your project root by copying the example file:
 
 ```bash
-# ========================================
-# GenX_FX Trading Platform - Environment Configuration
-# ========================================
-
-# ========================================
-# DATABASE CONFIGURATION
-# ========================================
-DATABASE_URL=postgresql://user:password@localhost:5432/genx_trading
-MONGODB_URL=mongodb://localhost:27017/genx_trading
-REDIS_URL=redis://localhost:6379
-
-# ========================================
-# SECURITY & AUTHENTICATION
-# ========================================
-SECRET_KEY=your-super-secret-key-change-this-in-production
-JWT_SECRET_KEY=your-jwt-secret-key-here
-CRYPTION_KEY=your-encryption-key-here
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# ========================================
-# AI & MACHINE LEARNING
-# ========================================
-# Google Gemini AI (Primary AI for market analysis)
-GEMINI_API_KEY=your-gemini-api-key-here
-
-# OpenAI (Optional fallback)
-OPENAI_API_KEY=your-openai-api-key-here
-
-# AI Model Paths
-MODEL_PATH=ai_models/market_predictor.joblib
-ENSEMBLE_MODEL_PATH=ai_models/ensemble_model.joblib
-
-# ========================================
-# TRADING BROKERS & EXCHANGES
-# ========================================
-# Bybit Exchange
-BYBIT_API_KEY=your-bybit-api-key-here
-BYBIT_API_SECRET=your-bybit-api-secret-here
-
-# FXCM (Forex Trading)
-FXCM_API_KEY=your-fxcm-api-key-here
-FXCM_ACCESS_TOKEN=your-fxcm-access-token-here
-FXCM_ACCOUNT_ID=your-fxcm-account-id-here
-FXCM_ENVIRONMENT=demo  # or "real"
-
-# ========================================
-# NEWS & MARKET DATA APIs
-# ========================================
-# Multi-source news aggregation
-NEWSDATA_API_KEY=your-newsdata-api-key-here
-ALPHAVANTAGE_API_KEY=your-alphavantage-api-key-here
-NEWSAPI_ORG_KEY=your-newsapi-org-key-here
-FINNHUB_API_KEY=your-finnhub-api-key-here
-FMP_API_KEY=your-fmp-api-key-here
-
-# ========================================
-# SOCIAL MEDIA APIs
-# ========================================
-# Reddit API for sentiment analysis
-REDDIT_CLIENT_ID=your-reddit-client-id-here
-REDDIT_CLIENT_SECRET=your-reddit-client-secret-here
-REDDIT_USERNAME=your-reddit-username-here
-REDDIT_PASSWORD=your-reddit-password-here
-REDDIT_USER_AGENT=GenX-Trading-Bot/1.0
-
-# ========================================
-# NOTIFICATION SERVICES
-# ========================================
-# Telegram Bot
-TELEGRAM_BOT_TOKEN=your-telegram-bot-token-here
-TELEGRAM_USER_ID=your-telegram-user-id-here
-
-# Discord Bot
-DISCORD_TOKEN=your-discord-bot-token-here
-
-# Email Notifications
-GMAIL_USER=your-gmail-address@gmail.com
-GMAIL_PASSWORD=your-gmail-app-password-here
-GMAIL_APP_API_KEY=your-gmail-api-key-here
-
-# ========================================
-# TRADING CONFIGURATION
-# ========================================
-DEFAULT_SYMBOL=BTCUSDT
-MAX_POSITION_SIZE=0.1
-RISK_PERCENTAGE=0.02
-
-# ========================================
-# FEATURE FLAGS
-# ========================================
-ENABLE_NEWS_ANALYSIS=true
-ENABLE_REDDIT_ANALYSIS=true
-ENABLE_WEBSOCKET_FEED=true
-ENABLE_GEMINI_AI=true
-
-# ========================================
-# SYSTEM CONFIGURATION
-# ========================================
-LOG_LEVEL=INFO
-API_V1_STR=/api/v1
-PROJECT_NAME=GenX-EA Trading Platform
-VERSION=2.0.0
-
-# ========================================
-# INTERVALS & TIMING
-# ========================================
-NEWS_REFRESH_INTERVAL=300
-REDDIT_REFRESH_INTERVAL=600
-WEBSOCKET_RECONNECT_INTERVAL=5
-MAX_WEBSOCKET_RETRIES=10
-SENTIMENT_THRESHOLD=0.6
-
-# ========================================
-# DEPLOYMENT & MONITORING
-# ========================================
-NODE_ENV=development  # or "production"
-DOMAIN=your-domain.com
-EMAIL=your-email@domain.com
+cp .env.example .env
 ```
+
+Then, open the `.env` file and fill in the required values for the environment variables. The `.env.example` file contains a complete list of all the environment variables used by the application.
 
 ## 🔑 **API Key Sources & Setup Instructions**
 

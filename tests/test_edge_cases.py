@@ -22,7 +22,7 @@ class TestEdgeCases:
     
     def test_health_endpoint_structure(self):
         """Test health endpoint returns correct structure"""
-        response = client.get("/health")
+        response = client.get("/api/v1/health")
         assert response.status_code == 200
         data = response.json()
         
@@ -50,7 +50,7 @@ class TestEdgeCases:
         for field in required_fields:
             assert field in data, f"Missing required field: {field}"
         
-        assert data["status"] == "active"
+        assert data["status"] == "running"
         assert data["docs"] == "/docs"
     
     def test_cors_headers(self):

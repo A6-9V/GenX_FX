@@ -2,16 +2,16 @@
 import requests
 import os
 
-GITHUB_TOKEN = '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'
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 REPO = 'Mouy-leng/GenX_FX'
 
 secrets = {
-    'BYBIT_API_KEY': 'your_bybit_key',
-    'BYBIT_SECRET': 'your_bybit_secret', 
-    'FXCM_USERNAME': 'your_fxcm_username',
-    'FXCM_PASSWORD': 'your_fxcm_password',
-    'GEMINI_API_KEY': 'your_gemini_key',
-    'TELEGRAM_BOT_TOKEN': 'your_telegram_token'
+    'BYBIT_API_KEY': os.getenv('BYBIT_API_KEY'),
+    'BYBIT_SECRET': os.getenv('BYBIT_SECRET'),
+    'FXCM_USERNAME': os.getenv('FXCM_USERNAME'),
+    'FXCM_PASSWORD': os.getenv('FXCM_PASSWORD'),
+    'GEMINI_API_KEY': os.getenv('GEMINI_API_KEY'),
+    'TELEGRAM_BOT_TOKEN': os.getenv('TELEGRAM_BOT_TOKEN')
 }
 
 print("AMP: Upload secrets to GitHub repository")
