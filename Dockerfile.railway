@@ -1,0 +1,49 @@
+# Railway Backend API Dockerfile
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    unzip \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install TA-Lib C library
+RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz && \
+    tar -xzf ta-lib-0.4.0-src.tar.gz && \
+    cd ta-lib/ && \
+    ./configure --prefix=/usr && \
+    make && \
+    make install && \
+    cd .. && \
+    rm -rf ta-lib-0.4.0-src.tar.gz ta-lib/
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy API files
+COPY api/ ./api/
+COPY core/ ./core/
+COPY utils/ ./utils/
+COPY config/ ./config/
+COPY main.py .
+
+# Create directories
+RUN mkdir -p /app/logs /app/data /app/signals
+
+# Expose port
+EXPOSE 8000
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PORT=8000
+ENV TRADING_MODE=live
+ENV BROKER=exness
+
+# Start the API
+CMD ["python", "main.py"]

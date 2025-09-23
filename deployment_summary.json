@@ -1,0 +1,64 @@
+{
+  "deployment_date": "2025-08-06T09:42:28.620233",
+  "amp_user": "01K1XBP8C5SZXYP88QD166AX1W",
+  "phases_completed": 5,
+  "total_phases": 5,
+  "services": {
+    "backend": {
+      "provider": "Railway",
+      "cost": "$5/month",
+      "status": "configured",
+      "files": [
+        "railway.json",
+        "Dockerfile.railway"
+      ]
+    },
+    "database": {
+      "provider": "Supabase",
+      "cost": "FREE",
+      "status": "configured",
+      "files": [
+        "database/schema.sql",
+        "supabase_config.json"
+      ]
+    },
+    "ai_processing": {
+      "provider": "Oracle Cloud",
+      "cost": "FREE",
+      "status": "configured",
+      "files": [
+        "docker-compose.oracle.yml",
+        "oracle-deploy.sh",
+        "oracle_config.json"
+      ]
+    },
+    "signal_processing": {
+      "provider": "Google Cloud Run",
+      "cost": "$1-5/month",
+      "status": "configured",
+      "files": [
+        "cloudbuild.yaml",
+        "Dockerfile.gcp",
+        "gcp_config.json"
+      ]
+    },
+    "frontend": {
+      "provider": "Vercel",
+      "cost": "FREE",
+      "status": "configured",
+      "files": [
+        "vercel.json"
+      ]
+    }
+  },
+  "total_monthly_cost": "$6-10",
+  "next_steps": [
+    "1. Set up Oracle Cloud account and create VM instance",
+    "2. Update supabase_config.json with your Supabase credentials",
+    "3. Update gcp_config.json with your GCP project details",
+    "4. Run ./oracle-deploy.sh on your Oracle Cloud instance",
+    "5. Deploy to Railway: railway up",
+    "6. Deploy to Google Cloud: gcloud builds submit",
+    "7. Deploy to Vercel: vercel --prod"
+  ]
+}

@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # AI/ML Processing Service
+  ai-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile.oracle
+    container_name: genx-ai-processor
+    restart: unless-stopped
+    environment:
+      - PYTHONPATH=/app
+      - ORACLE_CLOUD=true
+      - AI_PROCESSING_MODE=true
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./models:/app/models
+    ports:
+      - "8001:8000"
+    command: ["python", "train_ai_system.py"]
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4.0'
+        reservations:
+          memory: 4G
+          cpus: '2.0'
+
+  # Model Serving Service
+  model-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.oracle
+    container_name: genx-model-server
+    restart: unless-stopped
+    environment:
+      - PYTHONPATH=/app
+      - MODEL_SERVING_MODE=true
+    volumes:
+      - ./models:/app/models
+      - ./logs:/app/logs
+    ports:
+      - "8002:8000"
+    command: ["python", "core/ai_models/model_server.py"]
+    depends_on:
+      - ai-processor
+
+  # Backtesting Service
+  backtester:
+    build:
+      context: .
+      dockerfile: Dockerfile.oracle
+    container_name: genx-backtester
+    restart: unless-stopped
+    environment:
+      - PYTHONPATH=/app
+      - BACKTESTING_MODE=true
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./results:/app/results
+    ports:
+      - "8003:8000"
+    command: ["python", "core/backtester.py"]
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: genx-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  redis_data:
