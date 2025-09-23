@@ -205,10 +205,9 @@ class TestDataValidation:
         ]
         
         for malicious_input in malicious_inputs:
-            test_data = {"symbol": malicious_input}
-            response = client.post("/api/v1/market-data/", json=test_data)
+            response = client.get(f"/api/v1/market-data/{malicious_input}")
             # Should not crash and should handle safely
-            assert response.status_code in [200, 400, 401, 403, 405, 422, 500]
+            assert response.status_code == 404
             
             # Check response doesn't contain SQL error messages
             response_text = response.text.lower()
