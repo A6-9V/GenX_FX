@@ -1,0 +1,6 @@
+{
+  "refresh_interval": 30,
+  "retention_days": 7,
+  "alerts_enabled": true,
+  "metrics_enabled": true
+}
