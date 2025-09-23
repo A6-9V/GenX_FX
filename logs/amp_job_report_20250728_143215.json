@@ -1,0 +1,15 @@
+{
+  "job_id": "amp_job_20250728_143215",
+  "timestamp": "2025-07-28T14:32:15.505306",
+  "services_initialized": [
+    "websocket"
+  ],
+  "plugins_installed": [
+    "gemini-integration",
+    "reddit-signals",
+    "news-aggregator",
+    "websocket-streams"
+  ],
+  "status": "completed",
+  "next_job_scheduled": true
+}
