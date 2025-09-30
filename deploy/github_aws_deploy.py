@@ -18,7 +18,7 @@ import docker
 from docker.errors import DockerException
 
 # GitHub token (you can also set this as environment variable)
-GITHUB_TOKEN = os.getenv('GITHUB_TOKEN', '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')
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 
 # Default values
 DEFAULT_ENVIRONMENT = 'production'
@@ -405,8 +405,8 @@ def main():
     token = args.token or GITHUB_TOKEN
     
     if not token:
-        print(f"{Colors.RED}[ERROR]{Colors.NC} GitHub token not provided")
-        print("Please provide a token using --token or set GITHUB_TOKEN environment variable")
+        print(f"{Colors.RED}[ERROR]{Colors.NC} GitHub token not provided.")
+        print("Please provide a token using the --token argument or by setting the GITHUB_TOKEN environment variable.")
         sys.exit(1)
         
     # Create deployer and run deployment
