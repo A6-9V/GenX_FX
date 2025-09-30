@@ -1,10 +1,6 @@
-<<<<<<< Updated upstream
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/Mouy-leng/GenX_FX)
-=======
 # 🚀 GenX FX Trading System
 
 ### **Professional AI-Powered Forex & Gold Trading Platform**
->>>>>>> Stashed changes
 
 # 🚀 GenX Trading Platform
 
@@ -16,15 +12,11 @@
 
 ## 🎯 Overview
 
-<<<<<<< Updated upstream
-GenX Trading Platform is a comprehensive AI-powered trading system that combines machine learning, real-time market analysis, and automated execution capabilities. The platform features a unified CLI interface, advanced signal generation, and multi-broker integration.
-=======
 🤖 **AI-Powered Signals** - Advanced machine learning models for market prediction  
 📊 **Professional Expert Advisors** - MT4/MT5 EAs with sophisticated risk management  
 🌐 **24/7 Cloud Operation** - Google VM with automated signal generation  
 ⚡ **Real-Time Integration** - Live data feeds and instant trade execution  
 🎯 **Gold Trading Specialist** - Advanced gold market strategies with confidence-based risk scaling
->>>>>>> Stashed changes
 
 ## ✨ Key Features
 
@@ -36,19 +28,6 @@ GenX Trading Platform is a comprehensive AI-powered trading system that combines
 - 🌐 **Cloud Deployment** - AWS, Heroku, Google Cloud ready
 - 🎮 **Unified CLI** - Single command interface for all operations
 
-<<<<<<< Updated upstream
-## 🏗️ Architecture
-
-```
-GenX Trading Platform
-├── 🎯 Head CLI (./genx) - Unified command center
-├── 🤖 AMP System - AI models & authentication
-├── ⚙️ GenX Core - Trading engine & signals
-├── 💬 Chat Interface - Interactive AI communication
-├── 📊 API Services - REST API & WebSocket feeds
-├── 📈 Expert Advisors - MT4/MT5 integration
-└── ☁️ Deployment - Multi-cloud support
-=======
 ### **🤖 Expert Advisors (MT4/MT5)**
 
 - **GenX Gold Master EA** - ⭐ Advanced gold trading with confidence-based risk management
@@ -95,17 +74,8 @@ GenX Trading Platform
 ├── VM Uptime:                  99.8%
 ├── Signal Accuracy:            71% (30-day average)
 └── Trades Executed Today:      24 signals processed
->>>>>>> Stashed changes
 ```
 
-## 🚀 Quick Start
-
-<<<<<<< Updated upstream
-### 1. Installation
-```bash
-# Clone the repository
-git clone https://github.com/Mouy-leng/GenX_FX.git
-=======
 ## 🚀 **Quick Start (5 Minutes)**
 
 ### **Option 1: Use Pre-Built Gold EA (Recommended)**
@@ -126,22 +96,21 @@ wget https://github.com/YourRepo/GenX_FX/raw/main/expert-advisors/GenX_Gold_Mast
 ```bash
 # 1. Clone repository
 git clone https://github.com/YourRepo/GenX_FX.git
->>>>>>> Stashed changes
 cd GenX_FX
 
-# Install dependencies
+# 2. Install dependencies
 pip3 install --break-system-packages typer rich requests pyyaml python-dotenv
 
-# Make CLI executable
+# 3. Set up your environment variables
+cp .env.example .env
+# Open .env and fill in your API keys and other secrets
+
+# 4. Make CLI executable
 chmod +x genx
 ```
 
-<<<<<<< Updated upstream
-### 2. System Overview
-=======
 ### **Option 3: Use Our Cloud VM**
 
->>>>>>> Stashed changes
 ```bash
 # Check system status
 ./genx overview
@@ -153,7 +122,7 @@ chmod +x genx
 ### 3. Authentication
 ```bash
 # Login to AMP system
-./genx auth --action login --token YOUR_AMP_TOKEN
+./genx auth --action login --token $AMP_TOKEN
 
 # Check authentication status
 ./genx auth
@@ -220,9 +189,6 @@ GenX_FX/
 
 ## 🎮 CLI Commands
 
-<<<<<<< Updated upstream
-### System Management
-=======
 ---
 
 ## 🎯 **Choose Your Path**
@@ -321,7 +287,6 @@ GenX_FX/
 
 ### **🌐 Public VM Access**
 
->>>>>>> Stashed changes
 ```bash
 ./genx overview              # System overview
 ./genx status               # Complete system status
@@ -329,9 +294,6 @@ GenX_FX/
 ./genx tree                 # Project structure
 ```
 
-<<<<<<< Updated upstream
-### AMP (AI System)
-=======
 ### **📈 Current Performance**
 
 - **System Uptime**: 99.8% (30-day average)
@@ -346,7 +308,6 @@ GenX_FX/
 
 ### **Run Tests**
 
->>>>>>> Stashed changes
 ```bash
 ./genx amp status           # AMP system status
 ./genx amp auth --status    # Check authentication
@@ -354,12 +315,8 @@ GenX_FX/
 ./genx amp deploy           # Deploy to production
 ```
 
-<<<<<<< Updated upstream
-### Trading Operations
-=======
 ### **Development Setup**
 
->>>>>>> Stashed changes
 ```bash
 ./genx genx status          # Trading system status
 ./genx genx excel           # Excel signal management
@@ -367,116 +324,7 @@ GenX_FX/
 ./genx genx config          # Configure API keys
 ```
 
-<<<<<<< Updated upstream
-### Communication
-```bash
-./genx chat                 # Interactive AI chat
-./genx logs                 # View system logs
-./genx monitor              # Performance monitoring
-```
-
-## 🤖 AMP System Features
-
-The **Automated Model Pipeline (AMP)** is the AI brain of the platform:
-
-- **Multi-Source Analysis**: News, Reddit, technical indicators
-- **Real-time Predictions**: Market direction and price targets
-- **Sentiment Analysis**: Social media and news sentiment
-- **Adaptive Learning**: Continuous model improvement
-- **Risk Management**: Automated stop-loss and take-profit
-
-### AMP Chat Examples
-```bash
-./genx chat
-You: What's the Bitcoin outlook?
-AMP: Bitcoin shows bullish sentiment (68% positive mentions on Reddit).
-     Technical indicators suggest upward momentum. Target: $48,000-$52,000
-
-You: Give me trading signals
-AMP: 🟢 BTC/USDT: LONG - Entry: $45,200, Stop: $43,800, Target: $48,500
-     🟡 ETH/USDT: WAIT - Waiting for breakout confirmation
-```
-
-## 🔗 Broker Integration
-
-### Supported Brokers
-- **FXCM** - Full API integration with ForexConnect
-- **Exness** - VPS deployment and MT4/MT5 EAs
-- **Interactive Brokers** - API integration (planned)
-- **Binance** - Cryptocurrency trading (planned)
-
-### ForexConnect Setup
-```bash
-./genx genx forexconnect    # Setup and test ForexConnect
-```
-
-## 📊 Signal Generation
-
-The platform generates trading signals through:
-
-1. **AI Model Ensemble** - Multiple ML models combined
-2. **Technical Analysis** - 50+ technical indicators
-3. **Sentiment Analysis** - News and social media sentiment
-4. **Risk Assessment** - Automated risk scoring
-
-### Excel Integration
-```bash
-./genx genx excel           # Generate Excel reports
-```
-
-## ☁️ Deployment Options
-
-### Docker Deployment
-```bash
-docker-compose up -d        # Local deployment
-```
-
-### AWS Deployment
-```bash
-./genx amp deploy           # Deploy to AWS
-```
-
-### Heroku Deployment
-```bash
-# See deploy/HEROKU_DEPLOYMENT_GUIDE.md
-```
-
-## 📈 Performance Monitoring
-
-Monitor your trading system:
-
-```bash
-./genx monitor              # Real-time monitoring
-./genx logs                 # System logs
-./genx amp monitor --dashboard  # Advanced dashboard
-```
-
-## 🛡️ Security & Authentication
-
-- **Token-based Authentication** - Secure AMP access
-- **API Key Management** - Encrypted broker credentials
-- **Environment Variables** - Secure configuration
-- **Access Control** - Role-based permissions
-
-## 🧪 Testing & Development
-
-```bash
-./genx amp test             # Run AMP tests
-./genx amp verify           # Verify installation
-./genx genx logs            # Debug logs
-```
-
-## 📚 Documentation
-
-- [Head CLI Guide](HEAD_CLI_README.md) - Complete CLI documentation
-- [AMP System Guide](amp-plugins/) - AI system documentation
-- [Deployment Guides](deploy/) - Cloud deployment instructions
-- [API Documentation](api/) - REST API reference
-
-## 🤝 Contributing
-=======
 ### **Contributing**
->>>>>>> Stashed changes
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/amazing-feature`
@@ -486,11 +334,6 @@ Monitor your trading system:
 
 ## 📄 License
 
-<<<<<<< Updated upstream
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🔗 Links
-=======
 ## 🌟 **What Makes GenX FX Special?**
 
 ### **🎯 Precision Trading**
@@ -573,7 +416,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Trading foreign exchange and CFDs carries high risk and is not suitable for all investors.
 Past performance is not indicative of future results. GenX FX is provided for educational
 and research purposes. Use at your own risk.
->>>>>>> Stashed changes
+```
 
 - **Repository**: https://github.com/Mouy-leng/GenX_FX
 - **Issues**: https://github.com/Mouy-leng/GenX_FX/issues
@@ -590,78 +433,6 @@ and research purposes. Use at your own risk.
 
 **🚀 Ready to revolutionize your trading with AI?**
 
-<<<<<<< Updated upstream
-Start with `./genx overview` and explore the platform's capabilities!
-
-# Docker Jules Orchestrator
-
-[![Security](https://github.com/Mouy-leng/docker_jules_orchestrator/workflows/Enhanced%20Security%20Analysis/badge.svg)](https://github.com/Mouy-leng/docker_jules_orchestrator/actions/workflows/security-enhanced.yml)
-[![Tests](https://github.com/Mouy-leng/docker_jules_orchestrator/workflows/Run%20Tests%20and%20Quality%20Checks/badge.svg)](https://github.com/Mouy-leng/docker_jules_orchestrator/actions/workflows/test.yml)
-[![Code Quality](https://github.com/Mouy-leng/docker_jules_orchestrator/workflows/Code%20Quality%20Check/badge.svg)](https://github.com/Mouy-leng/docker_jules_orchestrator/actions/workflows/code-quality.yml)
-[![Docker Build](https://github.com/Mouy-leng/docker_jules_orchestrator/workflows/Build%20and%20Push%20Docker%20Image/badge.svg)](https://github.com/Mouy-leng/docker_jules_orchestrator/actions/workflows/docker-build.yml)
-[![Dependabot](https://img.shields.io/badge/dependabot-enabled-brightgreen.svg)](https://dependabot.com/)
-[![Security Policy](https://img.shields.io/badge/security-policy-brightgreen.svg)](SECURITY.md)
-
-## 🛡️ Security & Quality Status
-
-This repository maintains high security standards through automated checks:
-
-- **🔒 Security Analysis**: CodeQL, secret scanning, dependency vulnerability checks
-- **🧪 Automated Testing**: Multi-Python version testing with coverage reporting
-- **📊 Code Quality**: Linting, formatting, and type checking
-- **🐳 Docker Security**: Container vulnerability scanning and build verification
-- **🔄 Dependency Updates**: Automated security updates via Dependabot
-
-## 🚀 Quick Start
-
-[Your existing quick start content here...]
-
-## 🔐 Security Features
-
-- **Branch Protection**: Main branch requires passing security checks
-- **Automated Scanning**: Weekly security audits and vulnerability detection
-- **Secret Detection**: Prevents accidental credential exposure
-- **Container Security**: Docker image vulnerability scanning
-- **Dependency Monitoring**: Automatic security update notifications
-
-## 📋 Requirements
-
-[Your existing requirements content here...]
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-pytest tests/
-
-# Run with coverage
-pytest tests/ --cov=. --cov-report=html
-
-# Run security checks
-bandit -r .
-safety check
-```
-
-## 🐳 Docker
-
-[Your existing Docker content here...]
-
-## 🔧 Development
-
-[Your existing development content here...]
-
-## 📚 Documentation
-
-[Your existing documentation content here...]
-
-## 🤝 Contributing
-
-Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Security Policy](SECURITY.md) before submitting changes.
-
-## 📄 License
-
-[Your existing license content here...]
-=======
 ### **🥇 Immediate Gold Trading (5 minutes)**
 
 1. Download [GenX_Gold_Master_EA.mq4](expert-advisors/GenX_Gold_Master_EA.mq4)
@@ -680,7 +451,6 @@ Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Security Policy]
 1. Clone this repository
 2. Follow [GETTING_STARTED.md](GETTING_STARTED.md)
 3. Deploy your own 24/7 trading system
->>>>>>> Stashed changes
 
 ---
 

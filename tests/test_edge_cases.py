@@ -72,7 +72,7 @@ class TestEdgeCases:
         }
         
         # This should work if the endpoint exists
-        response = client.post("/api/v1/predictions/predict", json=large_data)
+        response = client.post("/api/v1/predictions/", json=large_data)
         # We expect either success or a structured error, not a crash
         assert response.status_code in [200, 400, 404, 422, 500]
     
@@ -302,7 +302,7 @@ class TestErrorHandling:
         test_cases = [
             ("DELETE", "/"),
             ("PUT", "/health"),
-            ("PATCH", "/api/v1/predictions/predict"),
+            ("PATCH", "/api/v1/predictions/"),
         ]
         
         for method, endpoint in test_cases:

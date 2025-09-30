@@ -23,9 +23,10 @@ async def root():
     return {
         "message": "GenX-FX Trading Platform API",
         "version": "1.0.0",
-        "status": "running",
+        "status": "active",
         "github": "Mouy-leng",
-        "repository": "https://github.com/Mouy-leng/GenX_FX.git"
+        "repository": "https://github.com/Mouy-leng/GenX_FX.git",
+        "docs": "/docs"
     }
 
 @app.get("/health")
@@ -40,13 +41,21 @@ async def health_check():
         return {
             "status": "healthy",
             "database": "connected",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "services": {
+                "ml_service": "active",
+                "data_service": "active"
+            }
         }
     except Exception as e:
         return {
             "status": "unhealthy",
             "error": str(e),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "services": {
+                "ml_service": "inactive",
+                "data_service": "inactive"
+            }
         }
 
 @app.get("/api/v1/health")
@@ -67,6 +76,10 @@ async def get_predictions():
         "status": "ready",
         "timestamp": datetime.now().isoformat()
     }
+
+@app.post("/api/v1/predictions/predict")
+async def predict():
+    return {"message": "Prediction received"}
 
 @app.get("/trading-pairs")
 async def get_trading_pairs():

@@ -13,6 +13,10 @@ Note: You need valid FXCM credentials to run this example.
 import forexconnect as fx
 import time
 import sys
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class ForexConnectExample:
     def __init__(self):
@@ -171,8 +175,8 @@ def main():
     
     # Demo connection configuration
     demo_url = "http://www.fxcorporate.com/Hosts.jsp"
-    demo_username = "your_demo_username"  # Replace with your credentials
-    demo_password = "your_demo_password"  # Replace with your credentials
+    demo_username = os.getenv("FXCM_USERNAME")
+    demo_password = os.getenv("FXCM_PASSWORD")
     
     if not fx_example.configure_connection(demo_url, demo_username, demo_password):
         print("Failed to configure connection")

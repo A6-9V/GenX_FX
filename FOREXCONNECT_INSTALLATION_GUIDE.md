@@ -83,6 +83,10 @@ python test_forexconnect.py
 
 ```python
 import forexconnect as fx
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Create session
 session = fx.O2GSession()
@@ -90,8 +94,8 @@ session = fx.O2GSession()
 # Set up login parameters (you need FXCM credentials)
 session_descriptor = fx.O2GSessionDescriptor()
 session_descriptor.setUrl("http://www.fxcorporate.com/Hosts.jsp")  # Demo server
-session_descriptor.setUser("your_demo_username")
-session_descriptor.setPassword("your_demo_password")
+session_descriptor.setUser(os.getenv("FXCM_USERNAME"))
+session_descriptor.setPassword(os.getenv("FXCM_PASSWORD"))
 session_descriptor.setConnection("Demo")  # or "Real" for live trading
 
 # Login to FXCM

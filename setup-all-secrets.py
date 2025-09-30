@@ -1,10 +1,13 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Set all environment variables from provided credentials
-os.environ['GITHUB_TOKEN'] = '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'
-os.environ['GITLAB_TOKEN'] = 'glpat-3p76i6YP3Iwiu25bO2QtAm86MQp1OmhsNjlpCw.01.121l499kx'
-os.environ['CURSOR_CLI_API_KEY'] = 'key_03096e697424c5489927db265b35a7ab045502673326d9bf1deb31ee3bfbf80f'
-os.environ['AMP_TOKEN'] = 'sgamp_user_01K1XBP8C5SZXYP88QD166AX1W_72c12a40546c130db17817dc9c92cb3770ecbe93e34a9fd23c8e9a2daa8e942c'
+os.environ['GITHUB_TOKEN'] = os.getenv("GITHUB_TOKEN", "your_github_token_here")
+os.environ['GITLAB_TOKEN'] = os.getenv("GITLAB_TOKEN", "your_gitlab_token_here")
+os.environ['CURSOR_CLI_API_KEY'] = os.getenv("CURSOR_CLI_API_KEY", "your_cursor_api_key_here")
+os.environ['AMP_TOKEN'] = os.getenv("AMP_TOKEN", "your_amp_token_here")
 
 # Update .env file with all credentials
 env_content = f"""

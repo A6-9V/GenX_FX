@@ -9,6 +9,10 @@ Note: You need valid FXCM credentials to run this example.
 import forexconnect as fx
 import time
 import sys
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class ForexConnectExample:
     def __init__(self):
@@ -53,8 +57,8 @@ import forexconnect as fx
 fx_conn = fx.ForexConnect()
 
 # Login parameters
-username = "your_fxcm_username"
-password = "your_fxcm_password"
+username = os.getenv("FXCM_USERNAME")
+password = os.getenv("FXCM_PASSWORD")
 connection = "Demo"  # or "Real" for live trading
 server = "Real"      # Server type
 
@@ -203,8 +207,8 @@ def main():
         return
     
     # Demo connection configuration
-    demo_username = "your_demo_username"  # Replace with your credentials
-    demo_password = "your_demo_password"  # Replace with your credentials
+    demo_username = os.getenv("FXCM_USERNAME")
+    demo_password = os.getenv("FXCM_PASSWORD")
     
     if not fx_example.configure_connection(demo_username, demo_password):
         print("Configuration setup failed")

@@ -30,6 +30,10 @@ def show_basic_usage():
     """Show basic ForexConnect usage examples."""
     try:
         import forexconnect as fx
+        import os
+        from dotenv import load_dotenv
+
+        load_dotenv()
         
         print("\n=== Basic ForexConnect Usage Examples ===")
         
@@ -55,8 +59,8 @@ session = fx.O2GSession()
 # Set up login parameters
 session_descriptor = fx.O2GSessionDescriptor()
 session_descriptor.setUrl("http://www.fxcorporate.com/Hosts.jsp")  # Demo server
-session_descriptor.setUser("your_username")
-session_descriptor.setPassword("your_password")
+session_descriptor.setUser(os.getenv("FXCM_USERNAME"))
+session_descriptor.setPassword(os.getenv("FXCM_PASSWORD"))
 session_descriptor.setConnection("Demo")  # or "Real"
 
 # Login (this would actually connect)

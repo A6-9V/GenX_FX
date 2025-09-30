@@ -4,7 +4,12 @@
 
 ### **Step 1: Create Environment File**
 
-Create a `.env` file in your project root with the following structure:
+Create a `.env` file in your project root by copying the example file:
+```bash
+cp .env.example .env
+```
+
+Then, open the `.env` file and fill in your API keys and other secrets. The structure of the file is as follows:
 
 ```bash
 # ========================================
@@ -128,35 +133,19 @@ DOMAIN=your-domain.com
 EMAIL=your-email@domain.com
 ```
 
-## 🔑 **API Key Sources & Setup Instructions**
+## 🔑 **API Key Sources**
 
 ### **1. Google Gemini AI (Required)**
 - **Purpose**: Primary AI for market analysis, sentiment analysis, trading insights
 - **Get API Key**: https://makersuite.google.com/app/apikey
-- **Cost**: Free tier available, pay-per-use
-- **Setup**: 
-  ```bash
-  export GEMINI_API_KEY="your-gemini-api-key-here"
-  ```
 
 ### **2. Bybit Exchange (Required for Crypto Trading)**
 - **Purpose**: Real-time market data and trading execution
 - **Get API Key**: https://www.bybit.com/en/account/api-key
-- **Setup**:
-  ```bash
-  export BYBIT_API_KEY="your-bybit-api-key-here"
-  export BYBIT_API_SECRET="your-bybit-api-secret-here"
-  ```
 
 ### **3. FXCM (Required for Forex Trading)**
 - **Purpose**: Forex market data and trading
 - **Get API Key**: https://www.fxcm.com/markets/forex-trading-demo/
-- **Setup**:
-  ```bash
-  export FXCM_API_KEY="your-fxcm-api-key-here"
-  export FXCM_ACCESS_TOKEN="your-fxcm-access-token-here"
-  export FXCM_ACCOUNT_ID="your-fxcm-account-id-here"
-  ```
 
 ### **4. News APIs (Optional but Recommended)**
 - **NewsData.io**: https://newsdata.io/
@@ -168,13 +157,6 @@ EMAIL=your-email@domain.com
 ### **5. Reddit API (Optional)**
 - **Purpose**: Social sentiment analysis
 - **Get API Key**: https://www.reddit.com/prefs/apps
-- **Setup**:
-  ```bash
-  export REDDIT_CLIENT_ID="your-reddit-client-id-here"
-  export REDDIT_CLIENT_SECRET="your-reddit-client-secret-here"
-  export REDDIT_USERNAME="your-reddit-username-here"
-  export REDDIT_PASSWORD="your-reddit-password-here"
-  ```
 
 ### **6. Notification Services (Optional)**
 - **Telegram Bot**: https://core.telegram.org/bots#how-do-i-create-a-bot
@@ -249,9 +231,12 @@ Create a test script to verify your API keys work:
 # test_api_keys.py
 import os
 import asyncio
+from dotenv import load_dotenv
 from api.services.gemini_service import GeminiService
 from api.services.news_service import NewsService
 from core.execution.bybit import BybitAPI
+
+load_dotenv()
 
 async def test_api_connections():
     print("🧪 Testing API Connections...")

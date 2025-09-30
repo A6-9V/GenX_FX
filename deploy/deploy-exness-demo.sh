@@ -5,6 +5,11 @@
 
 set -euo pipefail
 
+# Load environment variables from .env file
+if [ -f .env ]; then
+    export $(cat .env | sed 's/#.*//g' | xargs)
+fi
+
 # --- Configuration ---
 APP_USER="genx"
 APP_DIR="/opt/genx-trading"
@@ -425,9 +430,9 @@ display_final_info() {
     echo -e "${GREEN}========================================${NC}"
     echo ""
     echo -e "${BLUE}Demo Account Details:${NC}"
-    echo -e "Login: 279023502"
-    echo -e "Server: Exness-MT5Trial8"
-    echo -e "Password: Leng12345@#$01"
+    echo -e "Login: ${EXNESS_LOGIN}"
+    echo -e "Server: ${EXNESS_SERVER}"
+    echo -e "Password: ${EXNESS_PASSWORD}"
     echo -e "Symbol: XAUUSD"
     echo -e "Timeframe: M15"
     echo ""

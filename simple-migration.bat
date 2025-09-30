@@ -34,28 +34,8 @@ if exist "E:\" (
 )
 
 echo [4/5] Creating credentials files...
-echo # Vultr VPS Credentials > "D:\GenX_FX\credentials\vps_credentials.env"
-echo VULTR_SERVER_IP=192.248.146.114 >> "D:\GenX_FX\credentials\vps_credentials.env"
-echo VULTR_SERVER_USERNAME=root >> "D:\GenX_FX\credentials\vps_credentials.env"
-echo VULTR_SERVER_PASSWORD=g-S2iz=e.D9xql6P >> "D:\GenX_FX\credentials\vps_credentials.env"
-echo VULTR_SERVER_OS=Alma Linux 8 x64 >> "D:\GenX_FX\credentials\vps_credentials.env"
-echo VULTR_SERVER_LOCATION=London >> "D:\GenX_FX\credentials\vps_credentials.env"
-
-echo # MT4 Account Credentials > "D:\GenX_FX\credentials\mt4_credentials.env"
-echo MT4_LOGIN=205875 >> "D:\GenX_FX\credentials\mt4_credentials.env"
-echo MT4_BROKER=Capital.com-Real >> "D:\GenX_FX\credentials\mt4_credentials.env"
-echo MT4_ACCOUNT_1=GoD Mode >> "D:\GenX_FX\credentials\mt4_credentials.env"
-echo MT4_BALANCE_1=0.17 >> "D:\GenX_FX\credentials\mt4_credentials.env"
-echo MT4_ACCOUNT_2=GoD Mode 2 >> "D:\GenX_FX\credentials\mt4_credentials.env"
-echo MT4_BALANCE_2=3.76 >> "D:\GenX_FX\credentials\mt4_credentials.env"
-echo MT4_STATUS=Active >> "D:\GenX_FX\credentials\mt4_credentials.env"
-
-echo # API Keys and Secrets > "D:\GenX_FX\credentials\api_keys.env"
-echo GEMINI_API_KEY=your_gemini_api_key_here >> "D:\GenX_FX\credentials\api_keys.env"
-echo EXNESS_LOGIN=your_exness_login >> "D:\GenX_FX\credentials\api_keys.env"
-echo EXNESS_PASSWORD=your_exness_password >> "D:\GenX_FX\credentials\api_keys.env"
-echo EXNESS_SERVER=Exness-MT5Trial8 >> "D:\GenX_FX\credentials\api_keys.env"
-echo SECRET_KEY=your_secret_key_here >> "D:\GenX_FX\credentials\api_keys.env"
+echo # Create a .env file in D:\GenX_FX\ with your credentials
+echo # Refer to .env.example for the required variables
 
 echo [5/5] Creating startup script for D: drive...
 echo @echo off > "D:\GenX_FX\start-genx-d.bat"
