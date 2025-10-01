@@ -31,13 +31,13 @@ def mock_auth():
 
 def test_root_endpoint():
     """Test root endpoint"""
-    response = client.get("/")
+    response = client.get("/api")
     assert response.status_code == 200
     assert "message" in response.json()
 
 def test_health_endpoint():
     """Test health endpoint"""
-    response = client.get("/health")
+    response = client.get("/api/health")
     assert response.status_code == 200
     assert "status" in response.json()
 

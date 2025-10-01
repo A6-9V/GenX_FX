@@ -1,63 +1,45 @@
-# Cloud Build Optimized Dockerfile for GenX Trading Platform
-# This version includes all necessary build tools and uses wheels
+# Stage 1: Build the React frontend
+FROM node:18-slim as builder
 
-FROM python:3.9-slim
-
-# Set working directory
 WORKDIR /app
 
-# Install system dependencies including build tools
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    gcc \
-    g++ \
-    wget \
-    curl \
-    unzip \
-    libc6-dev \
-    make \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+# Copy package files and install dependencies
+COPY package*.json ./
+COPY tsconfig.json .
+COPY vite.config.ts .
+COPY tailwind.config.ts .
+COPY postcss.config.js .
+COPY client/ client/
+RUN npm install
 
-# Upgrade pip and install build tools
-RUN pip install --upgrade pip setuptools wheel
+# Build the frontend
+RUN npm run build
 
-# Copy requirements first for better caching
-COPY requirements-cloud.txt ./requirements.txt
+# Stage 2: Create the final Python application
+FROM python:3.10-slim
 
-# Install Python dependencies using wheels when possible
-RUN pip install --no-cache-dir --prefer-binary -r requirements.txt
-
-# Copy application files
-COPY main.py ./
-COPY core/ ./core/
-COPY config/ ./config/
-COPY utils/ ./utils/
-COPY api/ ./api/
-COPY services/ ./services/
-COPY shared/ ./shared/
-COPY database/ ./database/
-
-# Create necessary directories
-RUN mkdir -p /app/logs /app/data /app/signals
-
-# Create non-root user for security
-RUN adduser --disabled-password --gecos '' --uid 1000 appuser && \
-    chown -R appuser:appuser /app
-USER appuser
-
-# Expose port for Cloud Run
-EXPOSE 8080
+WORKDIR /app
 
 # Set environment variables
-ENV PYTHONPATH=/app
-ENV PYTHONUNBUFFERED=1
-ENV TRADING_MODE=cloud
-ENV BROKER=exness
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Start the application
-CMD ["python", "main.py", "--mode", "cloud", "--port", "8080"]
+# Copy the entire application code
+COPY . .
+
+# Copy the built frontend from the builder stage
+COPY --from=builder /app/client/dist ./client/dist
+
+# Expose the port the app runs on
+EXPOSE 8080
+
+# Creates a non-root user and changes ownership
+RUN useradd -m -u 1000 appuser
+USER appuser
+
+# Run the application
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080", "api.main:app"]
