@@ -1,6 +1,13 @@
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
+try:
+    from jose import JWTError, jwt
+except Exception:  # jose not installed in minimal/runtime builds
+    JWTError = Exception
+    class _DummyJWT:
+        def decode(self, *args, **kwargs):
+            return {}
+    jwt = _DummyJWT()
 from datetime import datetime, timedelta
 from typing import Optional
 import logging

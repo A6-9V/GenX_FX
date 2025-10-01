@@ -1,83 +1,25 @@
-# Multi-stage build for GenX FX Trading System
-# Docker Hub: keamouyleng/genx_docker
-FROM node:18-alpine AS frontend-builder
+# For more information, please refer to https://aka.ms/vscode-docker-python
+FROM python:3-slim
 
-# Set working directory
-WORKDIR /app
+EXPOSE 8080
 
-# Copy package files
-COPY package*.json ./
+# Keeps Python from generating .pyc files in the container
+ENV PYTHONDONTWRITEBYTECODE=1
 
-# Install dependencies
-RUN npm ci --only=production
+# Turns off buffering for easier container logging
+ENV PYTHONUNBUFFERED=1
 
-# Copy frontend source
-COPY client/ ./client/
-COPY vite.config.ts ./
-COPY tailwind.config.ts ./
-COPY postcss.config.js ./
-COPY tsconfig*.json ./
-
-# Build frontend
-RUN npm run build
-
-# Python backend stage
-FROM python:3.11-slim AS backend-builder
+# Install pip requirements
+COPY requirements.txt .
+RUN python -m pip install -r requirements.txt
 
 WORKDIR /app
+COPY . /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
+# Creates a non-root user with an explicit UID and adds permission to access the /app folder
+# For more info, please refer to https://aka.ms/vscode-docker-python-configure-containers
+RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
+USER appuser
 
-# Copy Python requirements
-COPY requirements*.txt ./
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements-prod.txt
-
-# Copy backend source
-COPY api/ ./api/
-COPY core/ ./core/
-COPY utils/ ./utils/
-COPY config/ ./config/
-
-# Production stage
-FROM python:3.11-slim
-
-WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy Python dependencies from builder
-COPY --from=backend-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=backend-builder /usr/local/bin /usr/local/bin
-
-# Copy backend source
-COPY --from=backend-builder /app/api ./api
-COPY --from=backend-builder /app/core ./core
-COPY --from=backend-builder /app/utils ./utils
-COPY --from=backend-builder /app/config ./config
-
-# Copy built frontend
-COPY --from=frontend-builder /app/client/dist ./static
-
-# Create non-root user
-RUN useradd --create-home --shell /bin/bash app
-RUN chown -R app:app /app
-USER app
-
-# Expose port
-EXPOSE 8000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-# Start the application
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
+CMD ["sh", "-c", "gunicorn -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8080} api.main:app"]

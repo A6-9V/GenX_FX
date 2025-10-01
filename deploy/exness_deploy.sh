@@ -45,15 +45,9 @@ deploy_to_cloud_run() {
     print_status "Building and deploying to Google Cloud Run..."
     
     # Set project variables
-    PROJECT_ID=${GOOGLE_CLOUD_PROJECT:-$(gcloud config get-value project)}
+    PROJECT_ID=${GOOGLE_CLOUD_PROJECT:-"your-project-id"}
     SERVICE_NAME="genx-exness-ea"
     REGION=${GOOGLE_CLOUD_REGION:-"europe-west1"}
-
-    if [ -z "$PROJECT_ID" ]; then
-        print_error "Google Cloud project ID is not set."
-        print_error "Please set the GOOGLE_CLOUD_PROJECT environment variable or run 'gcloud config set project YOUR_PROJECT_ID'"
-        exit 1
-    fi
 
     print_status "Project ID: $PROJECT_ID"
     print_status "Service Name: $SERVICE_NAME"

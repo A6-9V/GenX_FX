@@ -162,9 +162,8 @@ class EnsemblePredictor:
             try:
                 sentiment_features = await self.sentiment_engine.generate_features(symbol)
                 features.extend(sentiment_features)
-            except Exception as e:
+            except:
                 # Sentiment features are optional
-                logger.debug(f"Could not generate sentiment features for {symbol}: {e}")
                 pass
             
             # Time-based features

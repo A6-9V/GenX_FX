@@ -6,8 +6,7 @@
     "jules_plugin",
     "codacy_plugin",
     "license_checker.py",
-    "amp_adapter",
-    "historymaker_plugin"
+    "amp_adapter"
   ],
   "git": {
     "github": {

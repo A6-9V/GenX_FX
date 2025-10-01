@@ -254,6 +254,37 @@ class AMPJobRunner:
         print(f"  📄 Report saved: {report_file}")
         print(f"  🎯 Next job scheduled for execution")
     
+    async def run_deploy_job(self):
+        """Execute deployment job"""
+        print("🚀 Starting Deployment Job")
+        print("=" * 50)
+
+        # Step 1: Verify system requirements
+        print("1️⃣ Verifying system requirements...")
+        if not shutil.which("docker-compose"):
+            raise RuntimeError("docker-compose not found. Please install Docker.")
+        print("  ✅ Docker found")
+
+        # Step 2: Pull latest images
+        print("2️⃣ Pulling latest Docker images...")
+        subprocess.run(["docker-compose", "-f", "docker-compose.production.yml", "pull"], check=True)
+
+        # Step 3: Build services if needed
+        print("3️⃣ Building services...")
+        subprocess.run(["docker-compose", "-f", "docker-compose.production.yml", "build"], check=True)
+
+        # Step 4: Deploy
+        print("4️⃣ Deploying to production...")
+        subprocess.run(["docker-compose", "-f", "docker-compose.production.yml", "up", "-d"], check=True)
+
+        # Step 5: Verify deployment
+        print("5️⃣ Verifying deployment...")
+        await asyncio.sleep(10)  # Wait for services to start
+        health_check = subprocess.run(["docker-compose", "-f", "docker-compose.production.yml", "ps"], capture_output=True, text=True)
+        print(health_check.stdout)
+
+        print("✅ Deployment job completed successfully!")
+
     def show_status(self):
         """Show current AMP status"""
         print("🔍 AMP Status Report")
@@ -292,14 +323,17 @@ async def main():
             runner.show_status()
         elif command == "run":
             await runner.run_next_job()
+        elif command == "deploy":
+            await runner.run_deploy_job()
         else:
-            print("Usage: python amp_job_runner.py [status|run]")
+            print("Usage: python amp_job_runner.py [status|run|deploy]")
     else:
         print("🚀 AMP Job Runner")
         print("Available commands:")
         print("  status - Show AMP status")
         print("  run    - Execute next job")
-        print("\nExample: python amp_job_runner.py run")
+        print("  deploy - Execute deployment job")
+        print("\nExample: python amp_job_runner.py deploy")
 
 if __name__ == "__main__":
     asyncio.run(main())

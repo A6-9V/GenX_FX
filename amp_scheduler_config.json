@@ -1,7 +1,0 @@
-{
-  "market_open": "09:00",
-  "market_close": "17:00",
-  "interval_minutes": 30,
-  "timezone": "UTC",
-  "enabled": true
-}

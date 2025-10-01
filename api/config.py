@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from pydantic import ConfigDict, validator, Field
+from pydantic import ConfigDict, field_validator, Field
 from typing import Optional, Literal
 import os
 from pathlib import Path
@@ -43,8 +43,8 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = Field(..., description="Secret key for JWT tokens")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    ALLOWED_ORIGINS: list[str] = ["*"]
-    ALLOWED_HOSTS: list[str] = ["*"]
+    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+    ALLOWED_HOSTS: list[str] = ["localhost", "127.0.0.1", "testserver"]
     
     # Logging
     LOG_LEVEL: str = "INFO"
@@ -53,25 +53,25 @@ class Settings(BaseSettings):
     # VPS Configuration
     VPS_PUBLIC_IP: Optional[str] = None
     
-    @validator('EXNESS_LOGIN')
+    @field_validator('EXNESS_LOGIN')
     def validate_login(cls, v):
         if not v or len(v) < 6:
             raise ValueError('Login must be at least 6 characters')
         return v
     
-    @validator('EXNESS_PASSWORD')
+    @field_validator('EXNESS_PASSWORD')
     def validate_password(cls, v):
         if not v or len(v) < 8:
             raise ValueError('Password must be at least 8 characters')
         return v
     
-    @validator('EA_DEFAULT_LOT_SIZE')
+    @field_validator('EA_DEFAULT_LOT_SIZE')
     def validate_lot_size(cls, v):
         if v <= 0 or v > 100:
             raise ValueError('Lot size must be between 0.01 and 100')
         return v
     
-    @validator('EA_MAX_RISK_PER_TRADE')
+    @field_validator('EA_MAX_RISK_PER_TRADE')
     def validate_risk_percentage(cls, v):
         if v <= 0 or v > 0.1:  # Max 10% risk per trade
             raise ValueError('Risk per trade must be between 0.01 and 0.1 (1-10%)')

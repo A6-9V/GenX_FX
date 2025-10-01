@@ -199,9 +199,8 @@ class FeatureEngineer:
             try:
                 pattern = pattern_func(df['open'], df['high'], df['low'], df['close'])
                 patterns.append(pattern)
-            except Exception as e:
+            except:
                 # Some patterns might fail, add zeros
-                logger.warning(f"TA-Lib pattern function {pattern_func.__name__} failed: {e}")
                 patterns.append(np.zeros(len(df)))
         
         # Combine all patterns

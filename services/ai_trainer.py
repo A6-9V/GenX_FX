@@ -251,8 +251,7 @@ class AITrainingService:
             # For now, return a random value between -1 and 1
             import random
             return random.uniform(-1, 1)
-        except Exception as e:
-            logger.warning(f"Could not analyze news sentiment for {symbol}: {e}")
+        except:
             return 0.0
     
     async def analyze_social_sentiment(self, symbol: str) -> float:
@@ -262,8 +261,7 @@ class AITrainingService:
             # For now, return a random value between -1 and 1
             import random
             return random.uniform(-1, 1)
-        except Exception as e:
-            logger.warning(f"Could not analyze social sentiment for {symbol}: {e}")
+        except:
             return 0.0
     
     async def get_fundamental_data(self, symbol: str) -> Optional[pd.DataFrame]:

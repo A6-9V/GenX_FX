@@ -37,7 +37,7 @@ class AMPMonitor:
         
         if self.monitor_config.exists():
             try:
-                with open(self.monitor_config, 'r') as f:
+                with open(self.monitor_config, 'r', encoding='utf-8') as f:
                     self.config = json.load(f)
             except Exception:
                 self.config = default_config
@@ -48,7 +48,7 @@ class AMPMonitor:
     def save_config(self):
         """Save monitoring configuration"""
         try:
-            with open(self.monitor_config, 'w') as f:
+            with open(self.monitor_config, 'w', encoding='utf-8') as f:
                 json.dump(self.config, f, indent=2)
         except Exception as e:
             print(f"Error saving monitor config: {e}")
@@ -133,8 +133,7 @@ class AMPMonitor:
                     if job_data.get("status") == "completed":
                         success_count += 1
                         
-                except (json.JSONDecodeError, IOError) as e:
-                    print(f"Warning: Could not process job report {report_file}: {e}")
+                except Exception:
                     continue
             
             return {
@@ -230,7 +229,7 @@ class AMPMonitor:
         report_file = self.reports_dir / f"amp_monitor_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         
         try:
-            with open(report_file, 'w') as f:
+            with open(report_file, 'w', encoding='utf-8') as f:
                 json.dump(status, f, indent=2)
             
             return str(report_file)

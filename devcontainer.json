@@ -1,6 +1,6 @@
 {
   "name": "GenX-FX-Dev",
-  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "image": "mcr.microsoft.com/devcontainers/universal:2-linux",
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/docker-in-docker:1": {},
@@ -24,10 +24,9 @@
     }
   },
   "forwardPorts": [3000, 5173, 8000],
-  "postCreateCommand": "npm install && pip install -r python/requirements.txt",
+  "postCreateCommand": "npm install && pip install -r requirements.txt",
   "remoteEnv": {
-    "PYTHONPATH": "/workspaces/GenX_FX/python"
+    "PYTHONPATH": "/workspaces/GenX_FX"
   },
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/GenX_FX,type=bind",
-  "workspaceFolder": "/workspaces/GenX_FX"
+  "remoteUser": "codespace"
 }

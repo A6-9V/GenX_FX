@@ -12,11 +12,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add security middleware
+# Add Trusted Host middleware
 app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=settings.ALLOWED_HOSTS
+    TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS
 )
+
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -31,8 +32,8 @@ async def root():
         "message": "GenX-FX Trading Platform API",
         "version": "1.0.0",
         "status": "running",
-        "github": "genxdbxfx1",
-        "repository": "https://github.com/genxdbxfx1-ctrl/GenX_db_FX-.git"
+        "github": "Mouy-leng",
+        "repository": "https://github.com/Mouy-leng/GenX_FX.git"
     }
 
 @app.get("/health")
@@ -55,6 +56,25 @@ async def health_check():
             "error": str(e),
             "timestamp": datetime.now().isoformat()
         }
+
+@app.get("/api/v1/health")
+async def api_health_check():
+    return {
+        "status": "healthy",
+        "services": {
+            "ml_service": "active",
+            "data_service": "active"
+        },
+        "timestamp": datetime.now().isoformat()
+    }
+
+@app.get("/api/v1/predictions")
+async def get_predictions():
+    return {
+        "predictions": [],
+        "status": "ready",
+        "timestamp": datetime.now().isoformat()
+    }
 
 @app.get("/trading-pairs")
 async def get_trading_pairs():

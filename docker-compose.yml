@@ -2,7 +2,6 @@ version: '3.8'
 
 services:
   api:
-    image: keamouyleng/genx_docker:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -14,7 +13,6 @@ services:
       - .:/app
 
   discord_bot:
-    image: keamouyleng/genx_docker:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -25,7 +23,6 @@ services:
       - .:/app
 
   telegram_bot:
-    image: keamouyleng/genx_docker:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -36,7 +33,6 @@ services:
       - .:/app
 
   notifier:
-    image: keamouyleng/genx_docker:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -47,7 +43,6 @@ services:
       - .:/app
 
   scheduler:
-    image: keamouyleng/genx_docker:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -58,7 +53,6 @@ services:
       - .:/app
 
   websocket_feed:
-    image: keamouyleng/genx_docker:latest
     build:
       context: .
       dockerfile: Dockerfile

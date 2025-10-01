@@ -15,7 +15,7 @@ env:
   DOCKER_TAG: latest
   
   # Python Configuration
-  PYTHON_VERSION: 3.11
+  PYTHON_VERSION: "3.11"
 
 # Ports to expose
 ports:
@@ -75,6 +75,15 @@ tasks:
         echo "⚠️  Please update .env with your API keys"
       fi
       echo "✅ AMP system initialized!"
+
+  - name: Install GitLab CLI
+    init: |
+      echo "🦊 Installing GitLab CLI..."
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+      brew install glab
+    command: |
+      echo "✅ GitLab CLI installed!"
 
   - name: Run Backend Server
     command: |

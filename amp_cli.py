@@ -15,6 +15,16 @@ import logging
 
 import typer
 from rich.console import Console
+
+# Force UTF-8 stdout/stderr to avoid Unicode issues on Windows consoles
+try:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+os.environ.setdefault("PYTHONIOENCODING", "utf-8")
 from rich.table import Table
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -41,7 +51,7 @@ class AMPCLI:
     def load_config(self) -> Dict:
         """Load AMP configuration"""
         if self.config_file.exists():
-            with open(self.config_file, 'r') as f:
+            with open(self.config_file, 'r', encoding='utf-8') as f:
                 return json.load(f)
         return {
             "api_provider": "gemini",
@@ -53,7 +63,7 @@ class AMPCLI:
     
     def save_config(self, config: Dict):
         """Save AMP configuration"""
-        with open(self.config_file, 'w') as f:
+        with open(self.config_file, 'w', encoding='utf-8') as f:
             json.dump(config, f, indent=2)
     
     def update(self, env_file: Optional[str] = None, set_config: Optional[List[str]] = None, 
@@ -173,7 +183,13 @@ class AMPCLI:
     def deploy(self):
         """Deploy to production"""
         with console.status("[bold blue]Deploying to production..."):
-            self._run_docker_deploy()
+            try:
+                import subprocess
+                subprocess.run([sys.executable, "amp_job_runner.py", "deploy"], check=True)
+            except subprocess.CalledProcessError:
+                console.print("❌ [bold red]Deployment failed!")
+            except FileNotFoundError:
+                console.print("⚠️ [yellow]amp_job_runner.py not found")
     
     def _load_env_vars(self, env_file: str):
         """Load environment variables from file"""
@@ -413,6 +429,26 @@ def deploy():
 def status():
     """Show AMP status"""
     amp.show_status()
+
+@app.command()
+def api_health(
+    url: Optional[str] = typer.Option(None, "--url", help="Backend base URL, e.g. https://service.run.app"),
+):
+    """Validate API /health endpoint"""
+    try:
+        import requests
+        target = url or os.getenv("BACKEND_URL")
+        if not target:
+            console.print("⚠️ [yellow]Provide --url or set BACKEND_URL env var")
+            raise typer.Exit(1)
+        resp = requests.get(target.rstrip('/') + "/health", timeout=10)
+        console.print(f"🔎 GET {resp.url} -> {resp.status_code}")
+        try:
+            console.print(resp.json())
+        except Exception:
+            console.print(resp.text)
+    except Exception as e:
+        console.print(f"❌ [bold red]API health check failed: {e}")
 
 @app.command()
 def run():
