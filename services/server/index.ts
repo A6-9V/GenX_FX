@@ -1,12 +1,34 @@
-
-import express from 'express';
+import express, { type Express } from 'express';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
-import { setupVite, serveStatic } from './vite.js';
 import { registerRoutes } from './routes.js';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
+import fs from 'fs';
+import path from 'path';
+
+function serveStatic(app: Express, distPath: string) {
+  if (!fs.existsSync(distPath)) {
+    throw new Error(
+      `Could not find the build directory: ${distPath}, make sure to build the client first`,
+    );
+  }
+
+  // This is a replacement for express.static, which was not available
+  app.use((req, res, next) => {
+    const filePath = path.join(distPath, req.url);
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      res.sendFile(filePath);
+    } else {
+      next();
+    }
+  });
+
+  app.use('*', (_req, res) => {
+    res.sendFile(path.resolve(distPath, 'index.html'));
+  });
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -26,7 +48,7 @@ app.use((req, res, next) => {
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? false 
-    : ['http://localhost:3000', 'http://0.0.0.0:3000'],
+    : ['http://localhost:3000', 'http://0.0.0.0:3000', 'http://localhost:5173'],
   credentials: true
 }));
 
@@ -90,15 +112,14 @@ wss.on('connection', (ws, req) => {
   }));
 });
 
-// Setup Vite in development or serve static files in production
+// In development, Vite is handled by a separate process.
+// In production, we'll serve the static files.
 if (process.env.NODE_ENV === 'production') {
   serveStatic(app, join(__dirname, '..', 'dist', 'public'));
-} else {
-  await setupVite(app, server);
 }
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, res, next) => {
   console.error('Server error:', err);
   res.status(500).json({
     error: 'Internal server error',
