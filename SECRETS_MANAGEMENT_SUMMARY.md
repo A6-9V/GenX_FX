@@ -142,6 +142,8 @@ git push origin main
 - Separate secrets for different environments
 - Encrypted storage using GitHub's encryption
 - No secrets in code or logs
+- **No Hardcoded Secrets**: All secrets must be loaded from environment variables or a secure vault. A hardcoded GitHub token was recently removed from `deploy/github_aws_deploy.py` to remediate a critical vulnerability. This is a critical security practice.
+- **Centralized Management**: To avoid inconsistencies and improve security, secrets should be managed centrally. The current use of `os.getenv` across multiple files should be phased out in favor of a single, secure configuration manager.
 
 ### 🚨 Access Control
 - Environment protection rules
