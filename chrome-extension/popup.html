@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GenX FX Trading</title>
+  <link rel="stylesheet" type="text/css" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>GenX FX Signals</h1>
+    </div>
+
+    <div id="account-info" class="section">
+      <h2>Account Info</h2>
+      <p><strong>Status:</strong> <span id="bot-status" class="status-disconnected">Disconnected</span></p>
+      <p><strong>Account ID:</strong> <span id="account-id">N/A</span></p>
+      <p><strong>Balance:</strong> <span id="account-balance">N/A</span></p>
+    </div>
+
+    <div id="signals" class="section">
+      <h2>Live Signals</h2>
+      <table id="signals-table">
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Entry</th>
+            <th>Target</th>
+            <th>Stop Loss</th>
+            <th>Confidence</th>
+          </tr>
+        </thead>
+        <tbody id="signals-body">
+          <!-- Signal rows will be inserted here by popup.js -->
+        </tbody>
+      </table>
+    </div>
+
+    <div id="controls" class="section">
+      <h2>Bot Controls</h2>
+      <button id="start-bot" class="btn btn-start">Start Bot</button>
+      <button id="stop-bot" class="btn btn-stop">Stop Bot</button>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
