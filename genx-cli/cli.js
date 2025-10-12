@@ -21,6 +21,7 @@ async function main() {
     console.log('Usage: genx-cli <command>');
     console.log('');
     console.log('Commands:');
+    console.log('  domain-check      Check the availability of one or more domains');
     console.log('  --list-plugins    List all available plugins');
     console.log('  --run-plugin      Run a specific plugin');
     console.log('');
@@ -64,6 +65,22 @@ async function main() {
     }
 
     plugin.run(config);
+    return;
+  }
+
+  if (args[0] === 'domain-check') {
+    const domains = args.slice(1);
+    if (domains.length === 0) {
+      console.error('Error: Please specify one or more domains to check.');
+      process.exit(1);
+    }
+    const pythonProcess = spawn('python3', ['genx-cli/plugins/domain_check.py', ...domains]);
+    pythonProcess.stdout.on('data', (data) => {
+      console.log(data.toString());
+    });
+    pythonProcess.stderr.on('data', (data) => {
+      console.error(data.toString());
+    });
     return;
   }
 
