@@ -49,6 +49,13 @@ session_app = typer.Typer(
 )
 app.add_typer(session_app, name="session")
 
+# Create a new Typer app for secure commands
+secure_app = typer.Typer(
+    help="🔐 Secure Remote Execution Commands",
+    rich_markup_mode="rich"
+)
+app.add_typer(secure_app, name="secure")
+
 
 class HeadCLI:
     def __init__(self):
@@ -315,6 +322,69 @@ def session_full_run(
     console.print(sync_response)
 
     console.print("\n🏁 [bold green]Full session orchestration run completed successfully![/bold green]")
+
+
+@secure_app.command("exec")
+def secure_exec(
+    key_file: Path = typer.Option(
+        ...,
+        "--key-file",
+        "-i",
+        help="Path to the private SSH key.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+    ),
+    remote_user_host: str = typer.Argument(..., help="Remote user and host, e.g., 'user@hostname'."),
+    command: str = typer.Argument(..., help="The command to execute on the remote machine."),
+):
+    """Execute a command on a remote machine over SSH."""
+    console.print(f"🔐 Executing command on [cyan]{remote_user_host}[/cyan]...")
+
+    ssh_command = [
+        "ssh",
+        "-i",
+        str(key_file),
+        "-o", "BatchMode=yes",
+        remote_user_host,
+        command,
+    ]
+
+    try:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            transient=True,
+        ) as progress:
+            progress.add_task(description="Running remote command...", total=None)
+            result = subprocess.run(
+                ssh_command,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        if result.returncode == 0:
+            console.print("✅ [green]Remote command executed successfully.[/green]")
+            if result.stdout:
+                console.print(Panel(result.stdout, title="[cyan]Remote Output[/cyan]", border_style="cyan"))
+            if result.stderr:
+                console.print(Panel(result.stderr, title="[yellow]Remote Stderr[/yellow]", border_style="yellow"))
+        else:
+            console.print(f"❌ [red]Error executing remote command (Exit Code: {result.returncode}).[/red]")
+            if result.stdout:
+                console.print(Panel(result.stdout, title="[cyan]Remote Output[/cyan]", border_style="cyan"))
+            if result.stderr:
+                console.print(Panel(result.stderr, title="[red]Remote Error[/red]", border_style="red"))
+            raise typer.Exit(code=result.returncode)
+
+    except FileNotFoundError:
+        console.print("❌ [red]Error: 'ssh' command not found. Please ensure OpenSSH client is installed and in your PATH.[/red]")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"❌ [bold red]An unexpected error occurred: {e}[/bold red]")
+        raise typer.Exit(1)
 
 
 @app.command()
