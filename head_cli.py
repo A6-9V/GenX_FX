@@ -57,6 +57,14 @@ secure_app = typer.Typer(
 app.add_typer(secure_app, name="secure")
 
 
+# Create a new Typer app for setup commands
+setup_app = typer.Typer(
+    help="🛠️ System Setup and Integration Commands",
+    rich_markup_mode="rich"
+)
+app.add_typer(setup_app, name="setup")
+
+
 class HeadCLI:
     def __init__(self):
         self.project_root = Path.cwd()
@@ -249,6 +257,37 @@ class HeadCLI:
 
 # Create CLI app instance
 head_cli = HeadCLI()
+
+
+@setup_app.command("jetbrains")
+def setup_jetbrains():
+    """Run the JetBrains integration setup script."""
+    console.print("🚀 [bold]Starting JetBrains Integration Setup...[/bold]")
+
+    setup_script = head_cli.project_root / "setup_jetbrains_integration.py"
+
+    if not setup_script.exists():
+        console.print(f"❌ [red]Error: Setup script not found at {setup_script}[/red]")
+        raise typer.Exit(1)
+
+    try:
+        # Use sys.executable to ensure the script runs with the same Python interpreter
+        result = subprocess.run(
+            [sys.executable, str(setup_script)],
+            check=False  # Set to False to handle non-zero exit codes manually
+        )
+        if result.returncode == 0:
+            console.print("✅ [bold green]JetBrains setup script completed successfully.[/bold green]")
+        else:
+            console.print(f"⚠️ [yellow]JetBrains setup script finished with a non-zero exit code: {result.returncode}.[/yellow]")
+            # No need to raise an error, just inform the user.
+
+    except FileNotFoundError:
+        console.print(f"❌ [red]Error: Python interpreter '{sys.executable}' not found.[/red]")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"❌ [bold red]An unexpected error occurred while running the setup script: {e}[/bold red]")
+        raise typer.Exit(1)
 
 
 @session_app.command("auth")
@@ -538,6 +577,7 @@ def main(
       head_cli chat                  # Start interactive chat
       head_cli status                # Complete system status
       head_cli session auth          # Authenticate device for session
+      head_cli setup jetbrains       # Run JetBrains integration setup
     """
     if version:
         console.print("GenX Trading Platform Head CLI v1.0.0")
