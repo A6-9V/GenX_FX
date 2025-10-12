@@ -1,15 +1,17 @@
 import json
 import subprocess
 import requests
+import socket
+
 
 def get_android_build_id():
-    """Extracts the Android build fingerprint."""
+    """Extracts the Android build fingerprint or falls back to the hostname."""
     try:
         build_id = subprocess.check_output(['getprop', 'ro.build.fingerprint']).decode('utf-8').strip()
         return build_id
     except FileNotFoundError:
         # This will happen if 'getprop' is not available, e.g., not on an Android device
-        return "not-an-android-device"
+        return socket.gethostname()
     except Exception as e:
         print(f"An error occurred while getting the build ID: {e}")
         return "error-getting-build-id"

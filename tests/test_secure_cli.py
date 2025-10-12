@@ -9,27 +9,34 @@ runner = CliRunner()
 
 def test_secure_exec_success():
     """Test the 'secure exec' command with a successful remote execution."""
-    with patch("subprocess.run") as mock_run:
-        # Mock a successful subprocess result
-        mock_run.return_value = MagicMock(
-            returncode=0,
-            stdout="Remote command output",
-            stderr=""
-        )
+    with runner.isolated_filesystem():
+        # Create a dummy key file to satisfy the 'exists=True' check
+        with open("dummy_key.pem", "w") as f:
+            f.write("-----BEGIN RSA PRIVATE KEY-----\n")
+            f.write("dummy_key\n")
+            f.write("-----END RSA PRIVATE KEY-----\n")
 
-        result = runner.invoke(
-            app,
-            [
-                "secure",
-                "exec",
-                "--key-file",
-                "dummy_key.pem",
-                "user@host",
-                "ls -l",
-            ],
-        )
+        with patch("subprocess.run") as mock_run:
+            # Mock a successful subprocess result
+            mock_run.return_value = MagicMock(
+                returncode=0,
+                stdout="Remote command output",
+                stderr=""
+            )
 
-        assert result.exit_code == 0
+            result = runner.invoke(
+                app,
+                [
+                    "secure",
+                    "exec",
+                    "--key-file",
+                    "dummy_key.pem",
+                    "user@host",
+                    "ls -l",
+                ],
+            )
+
+            assert result.exit_code == 0
         assert "Remote command executed successfully" in result.stdout
         assert "Remote command output" in result.stdout
         mock_run.assert_called_once()
@@ -46,28 +53,35 @@ def test_secure_exec_success():
 
 def test_secure_exec_failure():
     """Test the 'secure exec' command with a failed remote execution."""
-    with patch("subprocess.run") as mock_run:
-        # Mock a failed subprocess result
-        mock_run.return_value = MagicMock(
-            returncode=127,
-            stdout="",
-            stderr="Command not found"
-        )
+    with runner.isolated_filesystem():
+        # Create a dummy key file to satisfy the 'exists=True' check
+        with open("dummy_key.pem", "w") as f:
+            f.write("-----BEGIN RSA PRIVATE KEY-----\n")
+            f.write("dummy_key\n")
+            f.write("-----END RSA PRIVATE KEY-----\n")
 
-        result = runner.invoke(
-            app,
-            [
-                "secure",
-                "exec",
-                "--key-file",
-                "dummy_key.pem",
-                "user@host",
-                "invalid-command",
-            ],
-        )
+        with patch("subprocess.run") as mock_run:
+            # Mock a failed subprocess result
+            mock_run.return_value = MagicMock(
+                returncode=127,
+                stdout="",
+                stderr="Command not found"
+            )
 
-        # The runner captures typer.Exit(code=127) but reports it as exit_code=1
-        assert result.exit_code == 1
+            result = runner.invoke(
+                app,
+                [
+                    "secure",
+                    "exec",
+                    "--key-file",
+                    "dummy_key.pem",
+                    "user@host",
+                    "invalid-command",
+                ],
+            )
+
+            # The runner captures typer.Exit(code=127) but reports it as exit_code=1
+            assert result.exit_code == 1
         assert "Error executing remote command" in result.stdout
         assert "Command not found" in result.stdout
         mock_run.assert_called_once()
