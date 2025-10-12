@@ -107,6 +107,17 @@ vscode:
     - ms-toolsai.jupyter
     - dbaeumer.vscode-eslint
 
+# JetBrains plugins to install
+# To use a JetBrains IDE, set it in your Gitpod preferences: https://gitpod.io/preferences
+jetbrains:
+  plugins:
+    - com.intellij.python
+    - com.intellij.docker
+    - org.jetbrains.plugins.yaml
+    - com.intellij.prettier
+    - com.intellij.lang.javascript.linter.eslint
+    - com.intellij.tailwindcss
+
 # Workspace settings
 workspaceLocation: .
 
