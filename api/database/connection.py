@@ -179,3 +179,12 @@ async def startup_database():
 async def shutdown_database():
     """Close database connections on application shutdown"""
     await db_manager.close()
+
+# Aliases for app.py compatibility
+async def init_db():
+    """Initialize database - alias for startup_database"""
+    await startup_database()
+
+async def close_db():
+    """Close database - alias for shutdown_database"""
+    await shutdown_database()

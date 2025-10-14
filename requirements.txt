@@ -6,7 +6,7 @@ xgboost~=3.0.4
 lightgbm>=4.0.0,<5.0.0
 
 # Technical Analysis and Financial Data
-ta-lib>=0.4.26
+# ta-lib>=0.4.26  # Commented out due to build issues in Docker
 yfinance>=0.2.18,<1.0.0
 mplfinance>=0.12.9b7
 
