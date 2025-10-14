@@ -1,19 +1,50 @@
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, status, Depends
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 import sqlite3
 import os
 from datetime import datetime, timedelta
 from api.services.ml_service import MLService
 from api.routers import communication
+from api.database.connection import (
+    db_manager, startup_database, shutdown_database, get_db_session
+)
+from api.models import Base, User, TradingPair, Account
+from sqlalchemy.ext.asyncio import AsyncSession
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan management"""
+    # Startup
+    logger.info("Starting A6-9V GenX FX API...")
+    try:
+        await startup_database()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
+        raise
+    
+    yield
+    
+    # Shutdown  
+    logger.info("Shutting down A6-9V GenX FX API...")
+    await shutdown_database()
+    logger.info("Database connections closed")
 
 app = FastAPI(
     title="GenX-FX Trading Platform API",
     description="Trading platform with ML-powered predictions and multi-agent communication",
     version="1.1.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 # Include the communication router
@@ -48,24 +79,21 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    db_connected = False
-    try:
-        # Test database connection
-        conn = sqlite3.connect("genxdb_fx.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT 1")
-        conn.close()
-        db_connected = True
-    except Exception:
-        db_connected = False
-
+    """Enhanced health check with database manager"""
+    db_health = await db_manager.health_check()
+    
+    overall_status = "healthy" if db_health.get("status") == "healthy" else "unhealthy"
+    
     return {
-        "status": "healthy" if db_connected else "unhealthy",
+        "status": overall_status,
         "timestamp": datetime.now().isoformat(),
+        "version": "1.1.0",
+        "environment": os.getenv("APP_ENV", "development"),
         "services": {
+            "api": "active",
             "ml_service": "active",
-            "data_service": "active" if db_connected else "inactive",
-            "database": "connected" if db_connected else "disconnected"
+            "database": db_health,
+            "cache": "not_configured"  # TODO: Add Redis health check
         }
     }
 

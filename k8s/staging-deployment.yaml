@@ -1,0 +1,188 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genx-fx-api
+  namespace: genx-fx-staging
+  labels:
+    app: genx-fx-api
+    environment: staging
+    version: v1.0.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: genx-fx-api
+  template:
+    metadata:
+      labels:
+        app: genx-fx-api
+        environment: staging
+        version: v1.0.0
+    spec:
+      containers:
+      - name: genx-fx-api
+        image: lengkundee01/genx-fx:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: APP_ENV
+          value: "staging"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: genx-fx-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: genx-fx-secrets
+              key: redis-url
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: genx-fx-secrets
+              key: secret-key
+        - name: NAMECHEAP_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: genx-fx-secrets
+              key: namecheap-api-token
+        - name: GITLAB_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: genx-fx-secrets
+              key: gitlab-api-key
+        - name: JULES_CLI
+          valueFrom:
+            secretKeyRef:
+              name: genx-fx-secrets
+              key: jules-cli-token
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+        - name: models
+          mountPath: /app/models
+      volumes:
+      - name: logs
+        persistentVolumeClaim:
+          claimName: genx-fx-logs-pvc
+      - name: models
+        persistentVolumeClaim:
+          claimName: genx-fx-models-pvc
+      imagePullSecrets:
+      - name: docker-registry-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: genx-fx-api-service
+  namespace: genx-fx-staging
+  labels:
+    app: genx-fx-api
+    environment: staging
+spec:
+  selector:
+    app: genx-fx-api
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: genx-fx-api-ingress
+  namespace: genx-fx-staging
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+spec:
+  tls:
+  - hosts:
+    - staging-api.genx-fx.a6-9v.com
+    secretName: genx-fx-staging-tls
+  rules:
+  - host: staging-api.genx-fx.a6-9v.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: genx-fx-api-service
+            port:
+              number: 80
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: genx-fx-secrets
+  namespace: genx-fx-staging
+type: Opaque
+data:
+  # These values should be base64 encoded
+  database-url: cG9zdGdyZXNxbDovL2dlbnhfdXNlcjpnZW54X3Bhc3N3b3JkQGRiOjU0MzIvZ2VueGRiX2Z4X3N0YWdpbmc=
+  redis-url: cmVkaXM6Ly9yZWRpczoxMjM0NUA6NjM3OS8w
+  secret-key: c3RhZ2luZy1zZWNyZXQta2V5LWNoYW5nZS1pbi1wcm9kdWN0aW9u
+  namecheap-api-token: # Add base64 encoded token
+  gitlab-api-key: # Add base64 encoded token
+  jules-cli-token: # Add base64 encoded token
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: genx-fx-logs-pvc
+  namespace: genx-fx-staging
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: genx-fx-models-pvc
+  namespace: genx-fx-staging
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard

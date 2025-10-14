@@ -9,9 +9,18 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
 
+# Install system dependencies for building Python packages
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    libc6-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install pip requirements
 COPY requirements.txt .
-RUN python -m pip install -r requirements.txt
+RUN python -m pip install --upgrade pip && python -m pip install -r requirements.txt
 
 WORKDIR /app
 COPY . /app

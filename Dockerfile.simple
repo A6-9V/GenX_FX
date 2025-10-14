@@ -1,0 +1,39 @@
+# Simple Dockerfile for A6-9V GenX FX Project
+FROM python:3.11-slim
+
+EXPOSE 8080
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    libc6-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create application directory
+WORKDIR /app
+
+# Install essential Python packages first
+RUN pip install --upgrade pip && \
+    pip install fastapi uvicorn gunicorn \
+    sqlalchemy>=2.0.0 \
+    asyncpg>=0.29.0 \
+    aiosqlite>=0.20.0 \
+    alembic>=1.12.0 \
+    aiohttp>=3.8.0
+
+# Copy application files
+COPY . /app
+
+# Create non-root user
+RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
+USER appuser
+
+# Start command
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080", "api.main:app"]
