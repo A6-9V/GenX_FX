@@ -146,3 +146,39 @@ def test_get_historical_market_data_invalid_timeframe():
     response = client.get("/api/v1/market-data/EUR%2FUSD/INVALID")
     assert response.status_code == 400
     assert "error" in response.json()
+
+def test_post_predictions():
+    """Test post_predictions endpoint"""
+    response = client.post("/api/v1/predictions/", json={"symbol": "EURUSD", "action": "buy"})
+    assert response.status_code == 200
+    assert response.json() == {"status": "received", "data": {"symbol": "EURUSD", "action": "buy"}}
+
+def test_post_market_data():
+    """Test post_market_data endpoint"""
+    response = client.post("/api/v1/market-data/", json={"symbol": "USDJPY", "price": 145.5})
+    assert response.status_code == 200
+    assert response.json() == {"status": "received", "data": {"symbol": "USDJPY", "price": 145.5}}
+
+def test_get_trading_pairs():
+    """Test get_trading_pairs endpoint"""
+    response = client.get("/trading-pairs")
+    assert response.status_code == 200
+    assert "trading_pairs" in response.json()
+
+def test_get_users():
+    """Test get_users endpoint"""
+    response = client.get("/users")
+    assert response.status_code == 200
+    assert "users" in response.json()
+
+def test_get_mt5_info():
+    """Test get_mt5_info endpoint"""
+    os.environ["MT5_LOGIN"] = "test_login"
+    os.environ["MT5_SERVER"] = "test_server"
+    response = client.get("/mt5-info")
+    assert response.status_code == 200
+    assert response.json() == {
+        "login": "test_login",
+        "server": "test_server",
+        "status": "configured"
+    }

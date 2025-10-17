@@ -141,6 +141,23 @@ def initialize_market_data_table():
         volume REAL
     );
     """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS trading_pairs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        symbol TEXT NOT NULL UNIQUE,
+        base_currency TEXT NOT NULL,
+        quote_currency TEXT NOT NULL,
+        is_active BOOLEAN NOT NULL CHECK (is_active IN (0, 1))
+    );
+    """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL UNIQUE,
+        is_active BOOLEAN NOT NULL CHECK (is_active IN (0, 1))
+    );
+    """)
 
     # Check if there's any data
     cursor.execute("SELECT COUNT(*) FROM market_data")
@@ -159,6 +176,16 @@ def initialize_market_data_table():
         INSERT INTO market_data (symbol, timestamp, open_price, high_price, low_price, close_price, volume)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """, sample_data)
+
+    cursor.execute("SELECT COUNT(*) FROM trading_pairs")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO trading_pairs (symbol, base_currency, quote_currency, is_active) VALUES (?, ?, ?, ?)",
+                       ('EUR/USD', 'EUR', 'USD', 1))
+
+    cursor.execute("SELECT COUNT(*) FROM users")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO users (username, email, is_active) VALUES (?, ?, ?)",
+                       ('testuser', 'test@example.com', 1))
 
     conn.commit()
     conn.close()
@@ -199,6 +226,8 @@ async def get_historical_market_data(symbol: str, timeframe: str):
         "timeframe": timeframe,
         "data": [dict(row) for row in data]
     }
+
+
 
 @app.get("/trading-pairs")
 async def get_trading_pairs():
@@ -247,8 +276,8 @@ async def get_users():
 @app.get("/mt5-info")
 async def get_mt5_info():
     return {
-        "login": "279023502",
-        "server": "Exness-MT5Trial8",
+        "login": os.getenv("MT5_LOGIN", "default_login"),
+        "server": os.getenv("MT5_SERVER", "default_server"),
         "status": "configured"
     }
 
