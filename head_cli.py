@@ -26,6 +26,7 @@ from rich.columns import Columns
 
 # Import the new session orchestration module
 from core import session_orchestration
+import kms_cli
 
 # Configure logging
 logging.basicConfig(
@@ -63,6 +64,13 @@ setup_app = typer.Typer(
     rich_markup_mode="rich"
 )
 app.add_typer(setup_app, name="setup")
+
+# Create a new Typer app for KMS commands
+kms_app = typer.Typer(
+    help="🔑 AWS KMS Operations",
+    rich_markup_mode="rich"
+)
+app.add_typer(kms_cli.app, name="kms")
 
 
 class HeadCLI:
