@@ -17,8 +17,8 @@ We take security vulnerabilities seriously. If you discover a security vulnerabi
 
 ### ✅ **DO** report security vulnerabilities privately:
 
-1. **Email**: Send details to [your-email@domain.com] (replace with your actual email)
-2. **Subject**: `[SECURITY] docker_jules_orchestrator - [Brief Description]`
+1. **Email**: Send details to security@example.com
+2. **Subject**: `[SECURITY] GenX_FX - [Brief Description]`
 3. **Include**:
    - Description of the vulnerability
    - Steps to reproduce
@@ -75,7 +75,7 @@ We take security vulnerabilities seriously. If you discover a security vulnerabi
 
 ### 📞 **Contact Information:**
 
-- **Security Email**: [your-email@domain.com]
+- **Security Email**: security@example.com
 - **GitHub Security**: Use GitHub's private vulnerability reporting feature
 - **PGP Key**: [Include your PGP key if you have one]
 
