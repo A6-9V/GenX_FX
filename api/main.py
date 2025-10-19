@@ -74,7 +74,8 @@ async def root():
         "status": "active",
         "docs": "/docs",
         "github": "Mouy-leng",
-        "repository": "https://github.com/Mouy-leng/GenX_FX.git"
+        "repository": "https://github.com/Mouy-leng/GenX_FX.git",
+        "docs": "/docs"
     }
 
 @app.get("/health")
