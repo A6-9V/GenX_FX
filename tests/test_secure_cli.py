@@ -7,6 +7,7 @@ from head_cli import app
 
 runner = CliRunner()
 
+
 def test_secure_exec_success():
     """Test the 'secure exec' command with a successful remote execution."""
     with runner.isolated_filesystem():
@@ -19,9 +20,7 @@ def test_secure_exec_success():
         with patch("subprocess.run") as mock_run:
             # Mock a successful subprocess result
             mock_run.return_value = MagicMock(
-                returncode=0,
-                stdout="Remote command output",
-                stderr=""
+                returncode=0, stdout="Remote command output", stderr=""
             )
 
             result = runner.invoke(
@@ -46,10 +45,12 @@ def test_secure_exec_success():
             "ssh",
             "-i",
             "dummy_key.pem",
-            "-o", "BatchMode=yes",
+            "-o",
+            "BatchMode=yes",
             "user@host",
             "ls -l",
         ]
+
 
 def test_secure_exec_failure():
     """Test the 'secure exec' command with a failed remote execution."""
@@ -63,9 +64,7 @@ def test_secure_exec_failure():
         with patch("subprocess.run") as mock_run:
             # Mock a failed subprocess result
             mock_run.return_value = MagicMock(
-                returncode=127,
-                stdout="",
-                stderr="Command not found"
+                returncode=127, stdout="", stderr="Command not found"
             )
 
             result = runner.invoke(
@@ -85,6 +84,7 @@ def test_secure_exec_failure():
         assert "Error executing remote command" in result.stdout
         assert "Command not found" in result.stdout
         mock_run.assert_called_once()
+
 
 def test_secure_exec_key_not_found():
     """Test the 'secure exec' command when the key file does not exist."""

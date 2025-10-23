@@ -12,23 +12,24 @@ import json
 
 logger = logging.getLogger(__name__)
 
+
 class GeminiService:
     """Service for interacting with Google Gemini AI"""
-    
+
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY")
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY environment variable is required")
-        
+
         # Configure Gemini
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
-        
+        self.model = genai.GenerativeModel("gemini-pro")
+
         # Chat model for conversational analysis
-        self.chat_model = genai.GenerativeModel('gemini-pro')
-        
+        self.chat_model = genai.GenerativeModel("gemini-pro")
+
         self.initialized = False
-        
+
     async def initialize(self):
         """Initialize the Gemini service"""
         try:
@@ -40,7 +41,7 @@ class GeminiService:
         except Exception as e:
             logger.error(f"Failed to initialize Gemini service: {e}")
             return False
-    
+
     async def generate_text(self, prompt: str, max_tokens: int = 1000) -> str:
         """Generate text using Gemini"""
         try:
@@ -51,12 +52,12 @@ class GeminiService:
         except Exception as e:
             logger.error(f"Gemini text generation error: {e}")
             return ""
-    
+
     async def analyze_market_sentiment(self, text_data: List[str]) -> Dict[str, Any]:
         """Analyze market sentiment from text data"""
         try:
             combined_text = "\n".join(text_data[:10])  # Limit to prevent token overflow
-            
+
             prompt = f"""
             Analyze the market sentiment from the following financial news and social media posts.
             
@@ -78,9 +79,9 @@ class GeminiService:
                 "reasoning": "brief explanation"
             }}
             """
-            
+
             response = await self.generate_text(prompt)
-            
+
             # Parse JSON response
             try:
                 result = json.loads(response)
@@ -90,7 +91,7 @@ class GeminiService:
                     "confidence": result.get("confidence", 0),
                     "action": result.get("action", "hold"),
                     "reasoning": result.get("reasoning", ""),
-                    "timestamp": datetime.now()
+                    "timestamp": datetime.now(),
                 }
             except json.JSONDecodeError:
                 # Fallback parsing
@@ -100,9 +101,9 @@ class GeminiService:
                     "confidence": 0,
                     "action": "hold",
                     "reasoning": response[:200],
-                    "timestamp": datetime.now()
+                    "timestamp": datetime.now(),
                 }
-                
+
         except Exception as e:
             logger.error(f"Market sentiment analysis error: {e}")
             return {
@@ -111,10 +112,12 @@ class GeminiService:
                 "confidence": 0,
                 "action": "hold",
                 "reasoning": f"Error: {str(e)}",
-                "timestamp": datetime.now()
+                "timestamp": datetime.now(),
             }
-    
-    async def analyze_trading_signals(self, market_data: Dict[str, Any], news_data: List[str]) -> Dict[str, Any]:
+
+    async def analyze_trading_signals(
+        self, market_data: Dict[str, Any], news_data: List[str]
+    ) -> Dict[str, Any]:
         """Analyze trading signals using market data and news"""
         try:
             prompt = f"""
@@ -148,9 +151,9 @@ class GeminiService:
                 "reasoning": "detailed explanation"
             }}
             """
-            
+
             response = await self.generate_text(prompt)
-            
+
             try:
                 result = json.loads(response)
                 return {
@@ -161,7 +164,7 @@ class GeminiService:
                     "take_profit": result.get("take_profit", 0),
                     "risk_level": result.get("risk_level", "medium"),
                     "reasoning": result.get("reasoning", ""),
-                    "timestamp": datetime.now()
+                    "timestamp": datetime.now(),
                 }
             except json.JSONDecodeError:
                 return {
@@ -172,9 +175,9 @@ class GeminiService:
                     "take_profit": 0,
                     "risk_level": "medium",
                     "reasoning": response[:200],
-                    "timestamp": datetime.now()
+                    "timestamp": datetime.now(),
                 }
-                
+
         except Exception as e:
             logger.error(f"Trading signal analysis error: {e}")
             return {
@@ -185,22 +188,24 @@ class GeminiService:
                 "take_profit": 0,
                 "risk_level": "high",
                 "reasoning": f"Error: {str(e)}",
-                "timestamp": datetime.now()
+                "timestamp": datetime.now(),
             }
-    
+
     async def chat_analysis(self, messages: List[Dict[str, str]]) -> str:
         """Interactive chat analysis for complex queries"""
         try:
             # Format messages for Gemini
-            conversation = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
-            
+            conversation = "\n".join(
+                [f"{msg['role']}: {msg['content']}" for msg in messages]
+            )
+
             response = await self.generate_text(conversation)
             return response
-            
+
         except Exception as e:
             logger.error(f"Chat analysis error: {e}")
             return f"Error in chat analysis: {str(e)}"
-    
+
     async def health_check(self) -> bool:
         """Check if Gemini service is healthy"""
         try:
@@ -209,7 +214,7 @@ class GeminiService:
         except Exception as e:
             logger.error(f"Gemini health check failed: {e}")
             return False
-    
+
     async def shutdown(self):
         """Shutdown the Gemini service"""
         logger.info("Shutting down Gemini service...")

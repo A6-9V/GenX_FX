@@ -7,15 +7,19 @@ import argparse
 API_BASE_URL = "http://127.0.0.1:8080/communication"
 AGENT_ID_FILE = "agent_id.json"
 
+
 def get_agent_id():
     """Retrieves the agent ID from the local file."""
     if not os.path.exists(AGENT_ID_FILE):
-        print(f"Error: Agent ID file not found at {AGENT_ID_FILE}. Please register the agent first.")
+        print(
+            f"Error: Agent ID file not found at {AGENT_ID_FILE}. Please register the agent first."
+        )
         return None
 
     with open(AGENT_ID_FILE, "r") as f:
         data = json.load(f)
         return data.get("agent_id")
+
 
 def send_message(sender_id, recipient_id, event_type, payload):
     """Sends a message to the communication hub."""
@@ -25,7 +29,7 @@ def send_message(sender_id, recipient_id, event_type, payload):
         "sender_id": sender_id,
         "recipient_id": recipient_id,
         "event_type": event_type,
-        "payload": payload
+        "payload": payload,
     }
 
     print(f"Sending message from agent {sender_id}...")
@@ -41,11 +45,21 @@ def send_message(sender_id, recipient_id, event_type, payload):
     except requests.exceptions.RequestException as e:
         print(f"Error sending message: {e}")
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Send a message from an agent to the communication hub.")
-    parser.add_argument("event_type", help="The type of the event (e.g., 'task_update', 'deployment_status').")
+    parser = argparse.ArgumentParser(
+        description="Send a message from an agent to the communication hub."
+    )
+    parser.add_argument(
+        "event_type",
+        help="The type of the event (e.g., 'task_update', 'deployment_status').",
+    )
     parser.add_argument("payload_json", help="The JSON string for the message payload.")
-    parser.add_argument("--recipient", default="broadcast", help="The recipient agent ID or 'broadcast'.")
+    parser.add_argument(
+        "--recipient",
+        default="broadcast",
+        help="The recipient agent ID or 'broadcast'.",
+    )
 
     args = parser.parse_args()
 

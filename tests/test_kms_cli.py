@@ -6,6 +6,7 @@ from kms_cli import app
 
 runner = CliRunner()
 
+
 @unittest.mock.patch("subprocess.run")
 def test_encrypt_success(mock_subprocess_run):
     # Mock the subprocess.run call to simulate a successful AWS CLI execution
@@ -37,6 +38,7 @@ def test_encrypt_success(mock_subprocess_run):
     assert result.exit_code == 0
     assert "Encryption successful" in result.stdout
     assert "mocked-ciphertext-blob" in result.stdout
+
 
 @unittest.mock.patch("subprocess.run")
 def test_encrypt_aws_cli_not_found(mock_subprocess_run):

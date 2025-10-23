@@ -4,20 +4,22 @@ ForexConnect API Test Script
 This script tests the ForexConnect installation and shows basic usage examples.
 """
 
+
 def test_forexconnect_import():
     """Test if ForexConnect can be imported successfully."""
     try:
         import forexconnect as fx
+
         print("✓ ForexConnect imported successfully!")
-        
+
         # Show version info
-        if hasattr(fx, '__version__'):
+        if hasattr(fx, "__version__"):
             print(f"✓ ForexConnect version: {fx.__version__}")
-        
+
         # Show available attributes (first 10)
-        attributes = [attr for attr in dir(fx) if not attr.startswith('_')]
+        attributes = [attr for attr in dir(fx) if not attr.startswith("_")]
         print(f"✓ Available modules/classes: {attributes[:10]}")
-        
+
         return True
     except ImportError as e:
         print(f"✗ Failed to import ForexConnect: {e}")
@@ -26,26 +28,27 @@ def test_forexconnect_import():
         print(f"✗ Error testing ForexConnect: {e}")
         return False
 
+
 def show_basic_usage():
     """Show basic ForexConnect usage examples."""
     try:
         import forexconnect as fx
-        
+
         print("\n=== Basic ForexConnect Usage Examples ===")
-        
+
         # Try to show basic API structure
-        if hasattr(fx, 'O2GSession'):
+        if hasattr(fx, "O2GSession"):
             print("✓ O2GSession class available")
-        
-        if hasattr(fx, 'O2GSessionDescriptor'):
+
+        if hasattr(fx, "O2GSessionDescriptor"):
             print("✓ O2GSessionDescriptor class available")
-            
-        if hasattr(fx, 'O2GLoginDescriptor'):
+
+        if hasattr(fx, "O2GLoginDescriptor"):
             print("✓ O2GLoginDescriptor class available")
-            
+
         # Basic connection example (without actual connection)
         print("\n=== Example Connection Code (not executed) ===")
-        example_code = '''
+        example_code = """
 # Basic ForexConnect connection example:
 import forexconnect as fx
 
@@ -63,15 +66,16 @@ session_descriptor.setConnection("Demo")  # or "Real"
 # session.login(session_descriptor)
 
 print("Connection setup complete")
-'''
+"""
         print(example_code)
-        
+
     except Exception as e:
         print(f"Error showing usage examples: {e}")
 
+
 if __name__ == "__main__":
     print("=== ForexConnect Installation Test ===")
-    
+
     # Test import
     if test_forexconnect_import():
         show_basic_usage()

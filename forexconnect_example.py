@@ -14,27 +14,28 @@ import forexconnect as fx
 import time
 import sys
 
+
 class ForexConnectExample:
     def __init__(self):
         self.session = None
         self.login_descriptor = None
-        
+
     def create_session(self):
         """Create and configure a ForexConnect session."""
         try:
             # Create session
             self.session = fx.O2GSession()
-            
+
             # Create session descriptor
             self.login_descriptor = fx.O2GSessionDescriptor()
-            
+
             print("✓ Session created successfully")
             return True
-            
+
         except Exception as e:
             print(f"✗ Error creating session: {e}")
             return False
-    
+
     def configure_connection(self, url, username, password, connection_type="Demo"):
         """Configure connection parameters."""
         try:
@@ -42,14 +43,14 @@ class ForexConnectExample:
             self.login_descriptor.setUser(username)
             self.login_descriptor.setPassword(password)
             self.login_descriptor.setConnection(connection_type)
-            
+
             print(f"✓ Connection configured for {connection_type} environment")
             return True
-            
+
         except Exception as e:
             print(f"✗ Error configuring connection: {e}")
             return False
-    
+
     def connect(self):
         """Connect to FXCM servers."""
         try:
@@ -59,13 +60,13 @@ class ForexConnectExample:
             print("  To actually connect, you would call:")
             print("  self.session.login(self.login_descriptor)")
             print("  (This requires valid FXCM credentials)")
-            
+
             return True
-            
+
         except Exception as e:
             print(f"✗ Error connecting: {e}")
             return False
-    
+
     def get_market_data_info(self):
         """Show information about market data access."""
         print("\n=== Market Data Access ===")
@@ -73,8 +74,8 @@ class ForexConnectExample:
         print("- Get real-time prices")
         print("- Access historical data")
         print("- Subscribe to price updates")
-        
-        example_code = '''
+
+        example_code = """
 # Example market data operations (requires active session):
 
 # Get offers table for currency pairs
@@ -87,9 +88,9 @@ for i in range(offers_table.size()):
     bid = offer_row.getBid()
     ask = offer_row.getAsk()
     print(f"{symbol}: Bid={bid}, Ask={ask}")
-'''
+"""
         print(example_code)
-    
+
     def get_account_info(self):
         """Show information about account access."""
         print("\n=== Account Information Access ===")
@@ -97,8 +98,8 @@ for i in range(offers_table.size()):
         print("- Get account balance")
         print("- Check equity and margin")
         print("- View open positions")
-        
-        example_code = '''
+
+        example_code = """
 # Example account operations (requires active session):
 
 # Get accounts table
@@ -116,9 +117,9 @@ for i in range(accounts_table.size()):
     print(f"Balance: {balance}")
     print(f"Equity: {equity}")
     print(f"Used Margin: {used_margin}")
-'''
+"""
         print(example_code)
-    
+
     def show_trading_example(self):
         """Show trading operation examples."""
         print("\n=== Trading Operations ===")
@@ -126,8 +127,8 @@ for i in range(accounts_table.size()):
         print("- Place market orders")
         print("- Set stop loss and take profit")
         print("- Manage positions")
-        
-        example_code = '''
+
+        example_code = """
 # Example trading operations (requires active session):
 
 # Create a market order
@@ -143,9 +144,9 @@ order_request.setAccountID("your_account_id")
 
 # Send the order (this would actually place the trade)
 # session.sendRequest(order_request)
-'''
+"""
         print(example_code)
-    
+
     def cleanup(self):
         """Clean up session resources."""
         try:
@@ -153,55 +154,57 @@ order_request.setAccountID("your_account_id")
                 # In a real implementation, you would logout here
                 # self.session.logout()
                 print("✓ Session cleanup completed")
-                
+
         except Exception as e:
             print(f"✗ Error during cleanup: {e}")
+
 
 def main():
     """Main example function."""
     print("=== ForexConnect API Example ===\n")
-    
+
     # Create example instance
     fx_example = ForexConnectExample()
-    
+
     # Demonstrate session creation
     if not fx_example.create_session():
         print("Failed to create session")
         return
-    
+
     # Demo connection configuration
     demo_url = "http://www.fxcorporate.com/Hosts.jsp"
     demo_username = "your_demo_username"  # Replace with your credentials
     demo_password = "your_demo_password"  # Replace with your credentials
-    
+
     if not fx_example.configure_connection(demo_url, demo_username, demo_password):
         print("Failed to configure connection")
         return
-    
+
     # Show connection (without actually connecting)
     if not fx_example.connect():
         print("Connection setup failed")
         return
-    
+
     # Show various API capabilities
     fx_example.get_market_data_info()
     fx_example.get_account_info()
     fx_example.show_trading_example()
-    
+
     # Cleanup
     fx_example.cleanup()
-    
+
     print("\n=== Getting Started ===")
     print("1. Sign up for FXCM demo account: https://www.fxcm.com/")
     print("2. Replace the demo_username and demo_password with your credentials")
     print("3. Uncomment the actual connection and trading calls")
     print("4. Run this script to start trading!")
-    
+
     print("\n=== Important Notes ===")
     print("- Always test with demo account first")
     print("- Implement proper error handling")
     print("- Use risk management in your trading strategies")
     print("- Check FXCM API documentation for complete reference")
+
 
 if __name__ == "__main__":
     main()

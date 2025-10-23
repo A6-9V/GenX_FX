@@ -153,14 +153,14 @@ class JetBrainsSetup:
         """Generate a new ED25519 SSH key pair."""
         email = self._get_user_email()
         if not email:
-            console.print("❌ [red]Email address is required to generate an SSH key. Aborting.[/red]")
+            console.print(
+                "❌ [red]Email address is required to generate an SSH key. Aborting.[/red]"
+            )
             exit(1)
 
         console.print("\n[bold]Generating new ED25519 SSH key pair...[/bold]")
         try:
-            with Progress(
-                *Progress.get_default_columns(), transient=True
-            ) as progress:
+            with Progress(*Progress.get_default_columns(), transient=True) as progress:
                 task = progress.add_task("Running ssh-keygen...", total=None)
                 subprocess.run(
                     [
@@ -197,9 +197,14 @@ class JetBrainsSetup:
         public_key_content = self.public_key_path.read_text().strip()
         console.print(Panel(public_key_content, border_style="green"))
 
-        console.print("[bold yellow]Action Required: Add SSH Key to GitHub[/bold yellow]")
+        console.print(
+            "[bold yellow]Action Required: Add SSH Key to GitHub[/bold yellow]"
+        )
         table = Table(show_header=False, box=None)
-        table.add_row("1. Go to GitHub SSH keys:", "[link=https://github.com/settings/keys]https://github.com/settings/keys[/link]")
+        table.add_row(
+            "1. Go to GitHub SSH keys:",
+            "[link=https://github.com/settings/keys]https://github.com/settings/keys[/link]",
+        )
         table.add_row("2. Click 'New SSH key'.")
         table.add_row("3. Paste the public key above into the 'Key' field.")
         table.add_row("4. Give it a title (e.g., 'Gitpod Dev Environment').")
@@ -239,7 +244,9 @@ class JetBrainsSetup:
         env_var_table.add_column("Field", style="cyan")
         env_var_table.add_column("Value", style="white")
         env_var_table.add_row("Name", "GITPOD_SSH_KEY")
-        env_var_table.add_row("Value", "Paste the entire content of your private key here.")
+        env_var_table.add_row(
+            "Value", "Paste the entire content of your private key here."
+        )
         env_var_table.add_row("Scope", f"'{self.github_repo_url}' (or your repo)")
         console.print(env_var_table)
 
@@ -262,31 +269,54 @@ class JetBrainsSetup:
         )
 
         gateway_table = Table(show_header=False, box=None)
-        gateway_table.add_row("1. [bold]Install JetBrains Gateway[/bold] on your local machine.")
-        gateway_table.add_row("2. [bold]Find Your Gitpod SSH Connection String[/bold]:\n"
-                              "   In your active Gitpod workspace, run 'gp ssh-gateway' in the terminal.\n"
-                              "   Copy the provided SSH connection string.")
-        gateway_table.add_row("3. [bold]Connect with Gateway[/bold]:\n"
-                              "   - Open JetBrains Gateway.\n"
-                              "   - Click 'Connect via SSH'.\n"
-                              "   - Paste the connection string from Gitpod.")
-        gateway_table.add_row("4. [bold]Configure Project[/bold]:\n"
-                              "   - Gateway will connect and download the required IDE backend.\n"
-                              "   - Once connected, open the project directory ('/workspace/GenX_FX').")
+        gateway_table.add_row(
+            "1. [bold]Install JetBrains Gateway[/bold] on your local machine."
+        )
+        gateway_table.add_row(
+            "2. [bold]Find Your Gitpod SSH Connection String[/bold]:\n"
+            "   In your active Gitpod workspace, run 'gp ssh-gateway' in the terminal.\n"
+            "   Copy the provided SSH connection string."
+        )
+        gateway_table.add_row(
+            "3. [bold]Connect with Gateway[/bold]:\n"
+            "   - Open JetBrains Gateway.\n"
+            "   - Click 'Connect via SSH'.\n"
+            "   - Paste the connection string from Gitpod."
+        )
+        gateway_table.add_row(
+            "4. [bold]Configure Project[/bold]:\n"
+            "   - Gateway will connect and download the required IDE backend.\n"
+            "   - Once connected, open the project directory ('/workspace/GenX_FX')."
+        )
         console.print(gateway_table)
         console.print()
 
     def _show_cost_optimization_tips(self):
         """Display cost optimization tips."""
         console.print(
-            Panel("[bold]Step 4: Best Practices for Cost Optimization[/bold]", border_style="cyan")
+            Panel(
+                "[bold]Step 4: Best Practices for Cost Optimization[/bold]",
+                border_style="cyan",
+            )
         )
 
         tips_table = Table(show_header=False, box=None)
-        tips_table.add_row("✅ [bold]Gitpod Auto-Sleep[/bold]:", "Your Gitpod workspace will automatically stop after 30 minutes of inactivity. You are only billed for the time it's running.")
-        tips_table.add_row("✅ [bold]Manual Stop[/bold]:", "Manually stop your workspace from the Gitpod dashboard when you're finished for the day.")
-        tips_table.add_row("✅ [bold]Resource Monitoring[/bold]:", "Keep an eye on your cloud provider's billing dashboard and set up alerts to avoid unexpected costs.")
-        tips_table.add_row("✅ [bold]Choose Appropriate Workspace Size[/bold]:", "Start with a standard Gitpod workspace and upgrade only if you need more resources.")
+        tips_table.add_row(
+            "✅ [bold]Gitpod Auto-Sleep[/bold]:",
+            "Your Gitpod workspace will automatically stop after 30 minutes of inactivity. You are only billed for the time it's running.",
+        )
+        tips_table.add_row(
+            "✅ [bold]Manual Stop[/bold]:",
+            "Manually stop your workspace from the Gitpod dashboard when you're finished for the day.",
+        )
+        tips_table.add_row(
+            "✅ [bold]Resource Monitoring[/bold]:",
+            "Keep an eye on your cloud provider's billing dashboard and set up alerts to avoid unexpected costs.",
+        )
+        tips_table.add_row(
+            "✅ [bold]Choose Appropriate Workspace Size[/bold]:",
+            "Start with a standard Gitpod workspace and upgrade only if you need more resources.",
+        )
         console.print(tips_table)
         console.print()
 
@@ -305,13 +335,19 @@ class JetBrainsSetup:
         summary_table.add_column("Action", style="cyan")
         summary_table.add_row("✅", "SSH key pair generated.")
         summary_table.add_row("➡️", "[bold]Add your public key to GitHub.[/bold]")
-        summary_table.add_row("➡️", "[bold]Launch Gitpod and set up the SSH key environment variable.[/bold]")
-        summary_table.add_row("➡️", "[bold]Connect your JetBrains IDE using Gateway.[/bold]")
+        summary_table.add_row(
+            "➡️",
+            "[bold]Launch Gitpod and set up the SSH key environment variable.[/bold]",
+        )
+        summary_table.add_row(
+            "➡️", "[bold]Connect your JetBrains IDE using Gateway.[/bold]"
+        )
 
         console.print(summary_table)
         console.print(
             "\nYou are now set up with a powerful, secure, and cost-effective development environment!"
         )
+
 
 if __name__ == "__main__":
     setup = JetBrainsSetup()

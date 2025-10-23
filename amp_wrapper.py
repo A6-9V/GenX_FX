@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path.cwd()))
 
 try:
     from amp_cli import app
+
     app()
 except ImportError as e:
     print(f"Error importing AMP CLI: {e}")

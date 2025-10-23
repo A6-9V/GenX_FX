@@ -3,9 +3,11 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
 
+
 class OrderType(str, Enum):
     BUY = "buy"
     SELL = "sell"
+
 
 class OrderStatus(str, Enum):
     PENDING = "pending"
@@ -13,10 +15,12 @@ class OrderStatus(str, Enum):
     CANCELLED = "cancelled"
     REJECTED = "rejected"
 
+
 class SignalType(str, Enum):
     LONG = "long"
     SHORT = "short"
     NEUTRAL = "neutral"
+
 
 # Market Data Schemas
 class MarketData(BaseModel):
@@ -29,10 +33,12 @@ class MarketData(BaseModel):
     open: float
     close: float
 
+
 class PredictionRequest(BaseModel):
     symbol: str
     timeframe: str = "1h"
     use_ensemble: bool = True
+
 
 class PredictionResponse(BaseModel):
     symbol: str
@@ -41,6 +47,7 @@ class PredictionResponse(BaseModel):
     timestamp: datetime
     features_used: List[str]
     model_version: str
+
 
 # Trading Schemas
 class TradeSignal(BaseModel):
@@ -53,6 +60,7 @@ class TradeSignal(BaseModel):
     risk_reward_ratio: float
     timestamp: datetime
 
+
 class OrderRequest(BaseModel):
     symbol: str
     order_type: OrderType
@@ -60,6 +68,7 @@ class OrderRequest(BaseModel):
     price: Optional[float] = None
     stop_loss: Optional[float] = None
     take_profit: Optional[float] = None
+
 
 class OrderResponse(BaseModel):
     order_id: str
@@ -70,6 +79,7 @@ class OrderResponse(BaseModel):
     status: OrderStatus
     timestamp: datetime
 
+
 # Portfolio Schemas
 class PortfolioStatus(BaseModel):
     total_balance: float
@@ -79,6 +89,7 @@ class PortfolioStatus(BaseModel):
     positions: List[Dict[str, Any]]
     open_orders: List[Dict[str, Any]]
 
+
 # AI Model Schemas
 class ModelMetrics(BaseModel):
     accuracy: float
@@ -87,12 +98,14 @@ class ModelMetrics(BaseModel):
     f1_score: float
     last_updated: datetime
 
+
 class ModelRetraining(BaseModel):
     model_name: str
     data_start_date: datetime
     data_end_date: datetime
     symbols: List[str]
     features: List[str]
+
 
 # System Status
 class SystemStatus(BaseModel):

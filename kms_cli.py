@@ -14,10 +14,15 @@ app = typer.Typer(
 
 console = Console()
 
+
 @app.callback(invoke_without_command=True)
 def encrypt(
-    key_id: str = typer.Option(..., "--key-id", help="The ID of the KMS key to use for encryption."),
-    plaintext_file: str = typer.Option(..., "--plaintext-file", help="The path to the file to encrypt."),
+    key_id: str = typer.Option(
+        ..., "--key-id", help="The ID of the KMS key to use for encryption."
+    ),
+    plaintext_file: str = typer.Option(
+        ..., "--plaintext-file", help="The path to the file to encrypt."
+    ),
     region: str = typer.Option(..., "--region", help="The AWS region."),
 ):
     """
@@ -58,16 +63,21 @@ def encrypt(
                 console.print(result.stderr)
 
     except FileNotFoundError:
-        console.print("❌ [red]Error: 'aws' command not found. Please ensure AWS CLI is installed and in your PATH.[/red]")
+        console.print(
+            "❌ [red]Error: 'aws' command not found. Please ensure AWS CLI is installed and in your PATH.[/red]"
+        )
         raise typer.Exit(1)
     except subprocess.CalledProcessError as e:
-        console.print(f"❌ [red]Error executing AWS CLI command (Exit Code: {e.returncode}).[/red]")
+        console.print(
+            f"❌ [red]Error executing AWS CLI command (Exit Code: {e.returncode}).[/red]"
+        )
         if e.stderr:
             console.print(e.stderr)
         raise typer.Exit(1)
     except Exception as e:
         console.print(f"❌ [bold red]An unexpected error occurred: {e}[/bold red]")
         raise typer.Exit(1)
+
 
 if __name__ == "__main__":
     app()

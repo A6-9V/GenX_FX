@@ -1,5 +1,6 @@
 import asyncio
 
+
 class MLService:
     def __init__(self):
         self.model = None
@@ -16,7 +17,7 @@ class MLService:
         """
         if not self.model:
             raise Exception("Service not initialized")
-            
+
         await asyncio.sleep(0.01)  # Simulate a small I/O delay
 
         # Dummy prediction logic

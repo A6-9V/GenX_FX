@@ -10,36 +10,38 @@ from core.indicators.rsi import calculate_rsi
 from core.indicators.macd import calculate_macd
 from core.indicators.moving_average import calculate_sma
 
+
 def create_features(df):
     """
     Creates features for the machine learning model.
     """
     # Calculate technical indicators
-    df['rsi'] = calculate_rsi(df['close'].values)
+    df["rsi"] = calculate_rsi(df["close"].values)
 
-    macd_line, signal_line, histogram = calculate_macd(df['close'].values)
+    macd_line, signal_line, histogram = calculate_macd(df["close"].values)
 
     # Align the lengths of the indicator arrays with the DataFrame
-    df = df.iloc[len(df) - len(histogram):].copy()
-    df['macd_line'] = macd_line[len(macd_line) - len(histogram):]
-    df['signal_line'] = signal_line[len(signal_line) - len(histogram):]
-    df['histogram'] = histogram
+    df = df.iloc[len(df) - len(histogram) :].copy()
+    df["macd_line"] = macd_line[len(macd_line) - len(histogram) :]
+    df["signal_line"] = signal_line[len(signal_line) - len(histogram) :]
+    df["histogram"] = histogram
 
-    sma_20 = calculate_sma(df['close'].values, period=20)
-    df = df.iloc[len(df) - len(sma_20):].copy()
-    df['sma_20'] = sma_20
+    sma_20 = calculate_sma(df["close"].values, period=20)
+    df = df.iloc[len(df) - len(sma_20) :].copy()
+    df["sma_20"] = sma_20
 
-    sma_50 = calculate_sma(df['close'].values, period=50)
-    df = df.iloc[len(df) - len(sma_50):].copy()
-    df['sma_50'] = sma_50
+    sma_50 = calculate_sma(df["close"].values, period=50)
+    df = df.iloc[len(df) - len(sma_50) :].copy()
+    df["sma_50"] = sma_50
 
     # Create target variable (1 if the price goes up in the next period, 0 otherwise)
-    df['target'] = (df['close'].shift(-1) > df['close']).astype(int)
+    df["target"] = (df["close"].shift(-1) > df["close"]).astype(int)
 
     # Drop rows with missing values
     df.dropna(inplace=True)
 
     return df
+
 
 if __name__ == "__main__":
     # Load sample data
@@ -51,12 +53,14 @@ if __name__ == "__main__":
         print("Creating sample data...")
         num_rows = 1000
         data = {
-            'timestamp': pd.to_datetime(pd.date_range(start='2023-01-01', periods=num_rows, freq='h')),
-            'open': pd.Series(np.random.uniform(40000, 41000, num_rows)),
-            'high': pd.Series(np.random.uniform(41000, 42000, num_rows)),
-            'low': pd.Series(np.random.uniform(39000, 40000, num_rows)),
-            'close': pd.Series(np.random.uniform(40000, 41000, num_rows)),
-            'volume': pd.Series(np.random.uniform(1000, 2000, num_rows))
+            "timestamp": pd.to_datetime(
+                pd.date_range(start="2023-01-01", periods=num_rows, freq="h")
+            ),
+            "open": pd.Series(np.random.uniform(40000, 41000, num_rows)),
+            "high": pd.Series(np.random.uniform(41000, 42000, num_rows)),
+            "low": pd.Series(np.random.uniform(39000, 40000, num_rows)),
+            "close": pd.Series(np.random.uniform(40000, 41000, num_rows)),
+            "volume": pd.Series(np.random.uniform(1000, 2000, num_rows)),
         }
         df = pd.DataFrame(data)
 

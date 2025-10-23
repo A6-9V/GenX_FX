@@ -5,6 +5,7 @@ import sys
 import requests
 import xml.etree.ElementTree as ET
 
+
 def get_public_ip():
     """Fetches the public IP address from an external service."""
     try:
@@ -13,6 +14,7 @@ def get_public_ip():
         return response.text
     except requests.exceptions.RequestException:
         return "8.8.8.8"  # Fallback IP
+
 
 def check_domain_availability(domains):
     """
@@ -49,7 +51,9 @@ def check_domain_availability(domains):
         root = ET.fromstring(response.content)
 
         # Find all DomainCheckResult elements
-        for result in root.findall(".//{http://api.namecheap.com/xml.response}DomainCheckResult"):
+        for result in root.findall(
+            ".//{http://api.namecheap.com/xml.response}DomainCheckResult"
+        ):
             domain = result.get("Domain")
             available = result.get("Available")
             print(f"Domain: {domain}, Available: {available}")
@@ -60,6 +64,7 @@ def check_domain_availability(domains):
     except ET.ParseError as e:
         print(f"Error parsing XML response: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

@@ -1,16 +1,20 @@
 import os
 from pybit.unified_trading import HTTP
 
+
 class BybitAPI:
     """
     A wrapper for the pybit library to interact with the Bybit V5 API.
     """
+
     def __init__(self):
         api_key = os.environ.get("BYBIT_API_KEY")
         api_secret = os.environ.get("BYBIT_API_SECRET")
 
         if not api_key or not api_secret:
-            raise ValueError("BYBIT_API_KEY and BYBIT_API_SECRET environment variables must be set.")
+            raise ValueError(
+                "BYBIT_API_KEY and BYBIT_API_SECRET environment variables must be set."
+            )
 
         # For testnet, set testnet=True
         self.session = HTTP(
@@ -25,10 +29,7 @@ class BybitAPI:
         """
         try:
             response = self.session.get_kline(
-                category="spot",
-                symbol=symbol,
-                interval=interval,
-                limit=limit
+                category="spot", symbol=symbol, interval=interval, limit=limit
             )
             return response
         except Exception as e:

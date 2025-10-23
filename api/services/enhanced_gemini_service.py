@@ -19,10 +19,11 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SentimentAnalysis:
     """Structured sentiment analysis result"""
+
     overall_sentiment: str  # "bullish", "bearish", "neutral"
-    confidence: float      # 0.0 to 1.0
-    emotional_tone: str    # "fear", "greed", "uncertainty", "optimism", etc.
-    market_impact: str     # "high", "medium", "low"
+    confidence: float  # 0.0 to 1.0
+    emotional_tone: str  # "fear", "greed", "uncertainty", "optimism", etc.
+    market_impact: str  # "high", "medium", "low"
     key_themes: List[str]
     risk_factors: List[str]
     opportunity_indicators: List[str]
@@ -33,6 +34,7 @@ class SentimentAnalysis:
 @dataclass
 class SignalValidation:
     """Signal validation result from Gemini AI"""
+
     is_valid: bool
     confidence_adjustment: float  # Multiplier for original confidence (0.5 - 2.0)
     risk_assessment: str  # "low", "medium", "high", "extreme"
@@ -46,6 +48,7 @@ class SignalValidation:
 @dataclass
 class MarketRegimeAnalysis:
     """Market regime and condition analysis"""
+
     regime_type: str  # "trending", "ranging", "volatile", "calm", "crisis"
     trend_direction: str  # "up", "down", "sideways"
     volatility_level: str  # "low", "normal", "high", "extreme"
@@ -57,22 +60,24 @@ class MarketRegimeAnalysis:
 
 class EnhancedGeminiService:
     """Enhanced Gemini AI service for comprehensive market intelligence"""
-    
+
     def __init__(self):
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model = genai.GenerativeModel('gemini-1.5-pro')  # Use the more advanced model
+        self.model = genai.GenerativeModel(
+            "gemini-1.5-pro"
+        )  # Use the more advanced model
         self.conversation_history = []
         self.market_context = {}
-        
+
     async def analyze_market_sentiment(
-        self, 
-        news_articles: List[str], 
+        self,
+        news_articles: List[str],
         social_media_posts: List[str],
-        instrument: str = "EUR/USD"
+        instrument: str = "EUR/USD",
     ) -> SentimentAnalysis:
         """
         Comprehensive sentiment analysis combining news and social media
-        
+
         Args:
             news_articles: List of news article texts
             social_media_posts: List of social media posts/comments
@@ -80,30 +85,29 @@ class EnhancedGeminiService:
         """
         try:
             # Prepare the analysis prompt
-            prompt = self._build_sentiment_prompt(news_articles, social_media_posts, instrument)
-            
+            prompt = self._build_sentiment_prompt(
+                news_articles, social_media_posts, instrument
+            )
+
             response = await self.model.generate_content_async(prompt)
-            
+
             # Parse the structured response
             sentiment_data = self._parse_sentiment_response(response.text)
-            
+
             return SentimentAnalysis(**sentiment_data)
-            
+
         except Exception as e:
             logger.error(f"Error in market sentiment analysis: {e}")
             return self._get_default_sentiment()
-    
+
     def _build_sentiment_prompt(
-        self, 
-        news_articles: List[str], 
-        social_media_posts: List[str], 
-        instrument: str
+        self, news_articles: List[str], social_media_posts: List[str], instrument: str
     ) -> str:
         """Build comprehensive sentiment analysis prompt"""
-        
+
         news_text = "\n\n".join(news_articles[:10])  # Limit to avoid token limits
         social_text = "\n\n".join(social_media_posts[:20])
-        
+
         return f"""
         As an expert financial market analyst, analyze the sentiment around {instrument} and the broader forex market based on the following information:
 
@@ -139,17 +143,17 @@ class EnhancedGeminiService:
 
         Provide only the JSON response without additional commentary.
         """
-    
+
     async def validate_trading_signal(
         self,
         signal_data: Dict[str, Any],
         market_context: Dict[str, Any],
         current_sentiment: SentimentAnalysis,
-        recent_news: List[str]
+        recent_news: List[str],
     ) -> SignalValidation:
         """
         Validate a trading signal using advanced AI reasoning
-        
+
         Args:
             signal_data: Original trading signal information
             market_context: Current market conditions (price, volatility, etc.)
@@ -160,27 +164,27 @@ class EnhancedGeminiService:
             prompt = self._build_signal_validation_prompt(
                 signal_data, market_context, current_sentiment, recent_news
             )
-            
+
             response = await self.model.generate_content_async(prompt)
             validation_data = self._parse_validation_response(response.text)
-            
+
             return SignalValidation(**validation_data)
-            
+
         except Exception as e:
             logger.error(f"Error in signal validation: {e}")
             return self._get_default_validation()
-    
+
     def _build_signal_validation_prompt(
         self,
         signal_data: Dict[str, Any],
         market_context: Dict[str, Any],
         sentiment: SentimentAnalysis,
-        recent_news: List[str]
+        recent_news: List[str],
     ) -> str:
         """Build signal validation prompt"""
-        
+
         news_summary = "\n".join(recent_news[:5])
-        
+
         return f"""
         As an expert quantitative analyst and risk manager, evaluate this trading signal:
 
@@ -232,16 +236,16 @@ class EnhancedGeminiService:
 
         Provide only the JSON response.
         """
-    
+
     async def analyze_market_regime(
         self,
         market_data: Dict[str, Any],
         economic_calendar: List[Dict],
-        cross_asset_data: Dict[str, Any]
+        cross_asset_data: Dict[str, Any],
     ) -> MarketRegimeAnalysis:
         """
         Analyze current market regime and conditions
-        
+
         Args:
             market_data: Price, volume, volatility data
             economic_calendar: Upcoming economic events
@@ -251,25 +255,25 @@ class EnhancedGeminiService:
             prompt = self._build_regime_analysis_prompt(
                 market_data, economic_calendar, cross_asset_data
             )
-            
+
             response = await self.model.generate_content_async(prompt)
             regime_data = self._parse_regime_response(response.text)
-            
+
             return MarketRegimeAnalysis(**regime_data)
-            
+
         except Exception as e:
             logger.error(f"Error in market regime analysis: {e}")
             return self._get_default_regime()
-    
+
     async def generate_adaptive_strategy_suggestions(
         self,
         current_performance: Dict[str, Any],
         market_conditions: MarketRegimeAnalysis,
-        risk_metrics: Dict[str, Any]
+        risk_metrics: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
         Generate adaptive strategy suggestions based on current conditions
-        
+
         Args:
             current_performance: Recent trading performance metrics
             market_conditions: Current market regime analysis
@@ -329,23 +333,26 @@ class EnhancedGeminiService:
 
             Provide only the JSON response.
             """
-            
+
             response = await self.model.generate_content_async(prompt)
             return self._parse_json_response(response.text)
-            
+
         except Exception as e:
             logger.error(f"Error generating strategy suggestions: {e}")
-            return {"overall_recommendation": "maintain_current", "reasoning": "Analysis unavailable"}
-    
+            return {
+                "overall_recommendation": "maintain_current",
+                "reasoning": "Analysis unavailable",
+            }
+
     async def analyze_economic_event_impact(
         self,
         event_details: Dict[str, Any],
         historical_patterns: List[Dict],
-        current_positions: List[Dict]
+        current_positions: List[Dict],
     ) -> Dict[str, Any]:
         """
         Analyze potential impact of upcoming economic events
-        
+
         Args:
             event_details: Details of the economic event
             historical_patterns: Historical market reactions to similar events
@@ -406,79 +413,82 @@ class EnhancedGeminiService:
 
             Provide only the JSON response.
             """
-            
+
             response = await self.model.generate_content_async(prompt)
             return self._parse_json_response(response.text)
-            
+
         except Exception as e:
             logger.error(f"Error analyzing economic event impact: {e}")
-            return {"expected_volatility_increase": 1.0, "reasoning": "Analysis unavailable"}
-    
+            return {
+                "expected_volatility_increase": 1.0,
+                "reasoning": "Analysis unavailable",
+            }
+
     def _parse_sentiment_response(self, response_text: str) -> Dict[str, Any]:
         """Parse sentiment analysis response"""
         try:
             # Extract JSON from response
-            json_start = response_text.find('{')
-            json_end = response_text.rfind('}') + 1
-            
+            json_start = response_text.find("{")
+            json_end = response_text.rfind("}") + 1
+
             if json_start >= 0 and json_end > json_start:
                 json_str = response_text[json_start:json_end]
                 return json.loads(json_str)
             else:
                 raise ValueError("No valid JSON found in response")
-                
+
         except Exception as e:
             logger.error(f"Error parsing sentiment response: {e}")
             return self._get_default_sentiment_data()
-    
+
     def _parse_validation_response(self, response_text: str) -> Dict[str, Any]:
         """Parse signal validation response"""
         try:
-            json_start = response_text.find('{')
-            json_end = response_text.rfind('}') + 1
-            
+            json_start = response_text.find("{")
+            json_end = response_text.rfind("}") + 1
+
             if json_start >= 0 and json_end > json_start:
                 json_str = response_text[json_start:json_end]
                 return json.loads(json_str)
             else:
                 raise ValueError("No valid JSON found in response")
-                
+
         except Exception as e:
             logger.error(f"Error parsing validation response: {e}")
             return self._get_default_validation_data()
-    
+
     def _parse_regime_response(self, response_text: str) -> Dict[str, Any]:
         """Parse market regime response"""
         try:
-            json_start = response_text.find('{')
-            json_end = response_text.rfind('}') + 1
-            
+            json_start = response_text.find("{")
+            json_end = response_text.rfind("}") + 1
+
             if json_start >= 0 and json_end > json_start:
                 json_str = response_text[json_start:json_end]
                 return json.loads(json_str)
             else:
                 raise ValueError("No valid JSON found in response")
-                
+
         except Exception as e:
             logger.error(f"Error parsing regime response: {e}")
             return self._get_default_regime_data()
-    
+
     def _parse_json_response(self, response_text: str) -> Dict[str, Any]:
         """Generic JSON response parser"""
         try:
-            json_start = response_text.find('{')
-            json_end = response_text.rfind('}') + 1
-            
+            json_start = response_text.find("{")
+            json_end = response_text.rfind("}") + 1
+
             if json_start >= 0 and json_end > json_start:
                 json_str = response_text[json_start:json_end]
                 return json.loads(json_str)
             else:
                 raise ValueError("No valid JSON found in response")
-                
+
         except Exception as e:
             logger.error(f"Error parsing JSON response: {e}")
             return {}
-    
+
     def _get_default_sentiment(self) -> SentimentAnalysis:
         """Get default sentiment analysis"""
         return SentimentAnalysis(
@@ -490,9 +500,9 @@ class EnhancedGeminiService:
             risk_factors=[],
             opportunity_indicators=[],
             temporal_context="short-term",
-            source_reliability=0.5
+            source_reliability=0.5,
         )
-    
+
     def _get_default_sentiment_data(self) -> Dict[str, Any]:
         """Get default sentiment data"""
         return {
@@ -504,9 +514,9 @@ class EnhancedGeminiService:
             "risk_factors": [],
             "opportunity_indicators": [],
             "temporal_context": "short-term",
-            "source_reliability": 0.5
+            "source_reliability": 0.5,
         }
-    
+
     def _get_default_validation(self) -> SignalValidation:
         """Get default signal validation"""
         return SignalValidation(
@@ -517,9 +527,9 @@ class EnhancedGeminiService:
             reasoning="Analysis unavailable",
             supporting_factors=[],
             warning_factors=[],
-            recommended_position_size=0.5
+            recommended_position_size=0.5,
         )
-    
+
     def _get_default_validation_data(self) -> Dict[str, Any]:
         """Get default validation data"""
         return {
@@ -530,9 +540,9 @@ class EnhancedGeminiService:
             "reasoning": "Analysis unavailable",
             "supporting_factors": [],
             "warning_factors": [],
-            "recommended_position_size": 0.5
+            "recommended_position_size": 0.5,
         }
-    
+
     def _get_default_regime(self) -> MarketRegimeAnalysis:
         """Get default market regime"""
         return MarketRegimeAnalysis(
@@ -542,9 +552,9 @@ class EnhancedGeminiService:
             market_phase="accumulation",
             institutional_sentiment="neutral",
             retail_sentiment="neutral",
-            news_flow_intensity="normal"
+            news_flow_intensity="normal",
         )
-    
+
     def _get_default_regime_data(self) -> Dict[str, Any]:
         """Get default regime data"""
         return {
@@ -554,22 +564,24 @@ class EnhancedGeminiService:
             "market_phase": "accumulation",
             "institutional_sentiment": "neutral",
             "retail_sentiment": "neutral",
-            "news_flow_intensity": "normal"
+            "news_flow_intensity": "normal",
         }
-    
+
     def _build_regime_analysis_prompt(
         self,
         market_data: Dict[str, Any],
         economic_calendar: List[Dict],
-        cross_asset_data: Dict[str, Any]
+        cross_asset_data: Dict[str, Any],
     ) -> str:
         """Build market regime analysis prompt"""
-        
-        events_summary = "\n".join([
-            f"- {event.get('name', 'Unknown')} at {event.get('time', 'Unknown')}"
-            for event in economic_calendar[:5]
-        ])
-        
+
+        events_summary = "\n".join(
+            [
+                f"- {event.get('name', 'Unknown')} at {event.get('time', 'Unknown')}"
+                for event in economic_calendar[:5]
+            ]
+        )
+
         return f"""
         As an expert macro analyst, analyze the current market regime based on this comprehensive data:
 

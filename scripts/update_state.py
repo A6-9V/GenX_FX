@@ -7,15 +7,19 @@ import argparse
 API_BASE_URL = "http://127.0.0.1:8080/communication"
 AGENT_ID_FILE = "agent_id.json"
 
+
 def get_agent_id():
     """Retrieves the agent ID from the local file."""
     if not os.path.exists(AGENT_ID_FILE):
-        print(f"Error: Agent ID file not found at {AGENT_ID_FILE}. Please register the agent first.")
+        print(
+            f"Error: Agent ID file not found at {AGENT_ID_FILE}. Please register the agent first."
+        )
         return None
 
     with open(AGENT_ID_FILE, "r") as f:
         data = json.load(f)
         return data.get("agent_id")
+
 
 def update_state(agent_id, new_state):
     """Updates the agent's state in the communication hub."""
@@ -35,10 +39,15 @@ def update_state(agent_id, new_state):
     except requests.exceptions.RequestException as e:
         print(f"Error updating state: {e}")
     except json.JSONDecodeError:
-        print(f"Error: Failed to decode JSON response from server. Response text: {response.text}")
+        print(
+            f"Error: Failed to decode JSON response from server. Response text: {response.text}"
+        )
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Update an agent's state in the communication hub.")
+    parser = argparse.ArgumentParser(
+        description="Update an agent's state in the communication hub."
+    )
     parser.add_argument("state_json", help="The JSON string for the new state.")
 
     args = parser.parse_args()

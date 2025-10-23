@@ -14,36 +14,38 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def create_database_schema():
     """Create the database schema for the trading platform"""
-    
+
     db_path = "genxdb_fx.db"
     logger.info(f"Creating database: {db_path}")
-    
+
     try:
         # Create database connection
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-        
+
         # Create tables
         create_tables(cursor)
-        
+
         # Insert initial data
         insert_initial_data(cursor)
-        
+
         # Commit changes
         conn.commit()
         conn.close()
-        
+
         logger.info("✅ Database schema setup complete!")
-        
+
     except Exception as e:
         logger.error(f"❌ Database error: {e}")
         sys.exit(1)
 
+
 def create_tables(cursor):
     """Create all required tables"""
-    
+
     # SQL statements to create tables
     tables_sql = [
         """
@@ -57,7 +59,6 @@ def create_tables(cursor):
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """,
-        
         """
         CREATE TABLE IF NOT EXISTS trading_accounts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,7 +74,6 @@ def create_tables(cursor):
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
         """,
-        
         """
         CREATE TABLE IF NOT EXISTS trading_pairs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,7 +84,6 @@ def create_tables(cursor):
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """,
-        
         """
         CREATE TABLE IF NOT EXISTS market_data (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,7 +97,6 @@ def create_tables(cursor):
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """,
-        
         """
         CREATE TABLE IF NOT EXISTS trading_signals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,7 +110,6 @@ def create_tables(cursor):
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """,
-        
         """
         CREATE TABLE IF NOT EXISTS trades (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -132,7 +129,6 @@ def create_tables(cursor):
             FOREIGN KEY (signal_id) REFERENCES trading_signals(id)
         )
         """,
-        
         """
         CREATE TABLE IF NOT EXISTS model_predictions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -146,7 +142,6 @@ def create_tables(cursor):
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """,
-        
         """
         CREATE TABLE IF NOT EXISTS system_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -155,9 +150,9 @@ def create_tables(cursor):
             module TEXT,
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-        """
+        """,
     ]
-    
+
     for i, sql in enumerate(tables_sql, 1):
         try:
             cursor.execute(sql)
@@ -165,15 +160,15 @@ def create_tables(cursor):
         except Exception as e:
             logger.warning(f"⚠️  Table creation warning (might already exist): {e}")
 
+
 def insert_initial_data(cursor):
     """Insert initial data into the database"""
-    
+
     initial_data_sql = [
         """
         INSERT OR IGNORE INTO users (username, email, password_hash) VALUES
         ('admin', 'admin@genxdbxfx1.com', 'hashed_password_placeholder')
         """,
-        
         """
         INSERT OR IGNORE INTO trading_pairs (symbol, base_currency, quote_currency) VALUES
         ('EUR/USD', 'EUR', 'USD'),
@@ -186,15 +181,16 @@ def insert_initial_data(cursor):
         ('EUR/GBP', 'EUR', 'GBP'),
         ('EUR/JPY', 'EUR', 'JPY'),
         ('GBP/JPY', 'GBP', 'JPY')
-        """
+        """,
     ]
-    
+
     for i, sql in enumerate(initial_data_sql, 1):
         try:
             cursor.execute(sql)
             logger.info(f"✅ Inserted initial data {i}/{len(initial_data_sql)}")
         except Exception as e:
             logger.warning(f"⚠️  Data insertion warning: {e}")
+
 
 if __name__ == "__main__":
     logger.info("🚀 Setting up GenX-FX Trading Platform Database...")

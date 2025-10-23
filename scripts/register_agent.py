@@ -12,6 +12,7 @@ AGENT_EMAIL = "lengkundee01@gmail.com"
 API_BASE_URL = "http://127.0.0.1:8080/communication"
 AGENT_ID_FILE = "agent_id.json"
 
+
 def register_agent():
     """
     Registers this agent instance with the communication hub.
@@ -20,7 +21,7 @@ def register_agent():
 
     payload = {
         "name": AGENT_NAME,
-        "email": AGENT_EMAIL
+        "email": AGENT_EMAIL,
         # The other Agent fields (id, status, last_seen) are handled by the server.
     }
 
@@ -47,7 +48,9 @@ def register_agent():
     except requests.exceptions.RequestException as e:
         print(f"Error registering agent: {e}")
     except json.JSONDecodeError:
-        print(f"Error: Failed to decode JSON response from server. Response text: {response.text}")
+        print(
+            f"Error: Failed to decode JSON response from server. Response text: {response.text}"
+        )
 
 
 if __name__ == "__main__":

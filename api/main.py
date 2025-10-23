@@ -9,7 +9,10 @@ from datetime import datetime, timedelta
 from api.services.ml_service import MLService
 from api.routers import communication
 from api.database.connection import (
-    db_manager, startup_database, shutdown_database, get_db_session
+    db_manager,
+    startup_database,
+    shutdown_database,
+    get_db_session,
 )
 from api.models import Base, User, TradingPair, Account
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,6 +21,7 @@ import logging
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -30,13 +34,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
         raise
-    
+
     yield
-    
-    # Shutdown  
+
+    # Shutdown
     logger.info("Shutting down A6-9V GenX FX API...")
     await shutdown_database()
     logger.info("Database connections closed")
+
 
 app = FastAPI(
     title="GenX-FX Trading Platform API",
@@ -44,11 +49,13 @@ app = FastAPI(
     version="1.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Include the communication router
-app.include_router(communication.router, prefix="/communication", tags=["communication"])
+app.include_router(
+    communication.router, prefix="/communication", tags=["communication"]
+)
 
 # Add CORS middleware
 app.add_middleware(
@@ -59,12 +66,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={"detail": exc.errors(), "body": exc.body},
     )
+
 
 @app.get("/")
 async def root():
@@ -74,16 +83,17 @@ async def root():
         "status": "active",
         "docs": "/docs",
         "github": "Mouy-leng",
-        "repository": "https://github.com/Mouy-leng/GenX_FX.git"
+        "repository": "https://github.com/Mouy-leng/GenX_FX.git",
     }
+
 
 @app.get("/health")
 async def health_check():
     """Enhanced health check with database manager"""
     db_health = await db_manager.health_check()
-    
+
     overall_status = "healthy" if db_health.get("status") == "healthy" else "unhealthy"
-    
+
     return {
         "status": overall_status,
         "timestamp": datetime.now().isoformat(),
@@ -93,38 +103,41 @@ async def health_check():
             "api": "active",
             "ml_service": "active",
             "database": db_health,
-            "cache": "not_configured"  # TODO: Add Redis health check
-        }
+            "cache": "not_configured",  # TODO: Add Redis health check
+        },
     }
+
 
 @app.get("/api/v1/health")
 async def api_health_check():
     return {
         "status": "healthy",
-        "services": {
-            "ml_service": "active",
-            "data_service": "active"
-        },
-        "timestamp": datetime.now().isoformat()
+        "services": {"ml_service": "active", "data_service": "active"},
+        "timestamp": datetime.now().isoformat(),
     }
+
 
 @app.get("/api/v1/predictions")
 async def get_predictions():
     return {
         "predictions": [],
         "status": "ready",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
+
 
 @app.post("/api/v1/predictions/")
 async def post_predictions(request: Request):
     try:
         data = await request.json()
         if not data:
-            return JSONResponse(status_code=400, content={"detail": "Empty JSON body received"})
+            return JSONResponse(
+                status_code=400, content={"detail": "Empty JSON body received"}
+            )
         return {"status": "received", "data": data}
     except Exception:
         return JSONResponse(status_code=400, content={"detail": "Malformed JSON"})
+
 
 @app.post("/api/v1/predictions/predict")
 async def predict(request: Request):
@@ -142,8 +155,14 @@ async def market_data(request: Request):
     data = await request.json()
     # Basic security check for SQL injection keywords
     payload_str = str(data).lower()
-    if "drop table" in payload_str or "' or '" in payload_str or "delete from" in payload_str:
-        return JSONResponse(status_code=400, content={"error": "Malicious payload detected"})
+    if (
+        "drop table" in payload_str
+        or "' or '" in payload_str
+        or "delete from" in payload_str
+    ):
+        return JSONResponse(
+            status_code=400, content={"error": "Malicious payload detected"}
+        )
     return {"status": "received", "data": data}
 
 
@@ -152,12 +171,14 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+
 def initialize_market_data_table():
     conn = get_db_connection()
     cursor = conn.cursor()
 
     # Create table if it doesn't exist
-    cursor.execute("""
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS market_data (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         symbol TEXT NOT NULL,
@@ -168,8 +189,10 @@ def initialize_market_data_table():
         close_price REAL,
         volume REAL
     );
-    """)
-    cursor.execute("""
+    """
+    )
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS trading_pairs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         symbol TEXT NOT NULL UNIQUE,
@@ -177,15 +200,18 @@ def initialize_market_data_table():
         quote_currency TEXT NOT NULL,
         is_active BOOLEAN NOT NULL CHECK (is_active IN (0, 1))
     );
-    """)
-    cursor.execute("""
+    """
+    )
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
         email TEXT NOT NULL UNIQUE,
         is_active BOOLEAN NOT NULL CHECK (is_active IN (0, 1))
     );
-    """)
+    """
+    )
 
     # Check if there's any data
     cursor.execute("SELECT COUNT(*) FROM market_data")
@@ -194,32 +220,81 @@ def initialize_market_data_table():
     # Insert sample data if the table is empty
     if count == 0:
         sample_data = [
-            ('EUR/USD', datetime.now() - timedelta(minutes=10), 1.0550, 1.0560, 1.0540, 1.0555, 1000),
-            ('EUR/USD', datetime.now() - timedelta(hours=1), 1.0555, 1.0575, 1.0550, 1.0570, 1200),
-            ('EUR/USD', datetime.now() - timedelta(hours=2), 1.0570, 1.0580, 1.0565, 1.0575, 1100),
-            ('EUR/USD', datetime.now() - timedelta(days=1), 1.0500, 1.0520, 1.0490, 1.0510, 2500),
-            ('GBP/USD', datetime.now() - timedelta(minutes=30), 1.2150, 1.2160, 1.2140, 1.2155, 800)
+            (
+                "EUR/USD",
+                datetime.now() - timedelta(minutes=10),
+                1.0550,
+                1.0560,
+                1.0540,
+                1.0555,
+                1000,
+            ),
+            (
+                "EUR/USD",
+                datetime.now() - timedelta(hours=1),
+                1.0555,
+                1.0575,
+                1.0550,
+                1.0570,
+                1200,
+            ),
+            (
+                "EUR/USD",
+                datetime.now() - timedelta(hours=2),
+                1.0570,
+                1.0580,
+                1.0565,
+                1.0575,
+                1100,
+            ),
+            (
+                "EUR/USD",
+                datetime.now() - timedelta(days=1),
+                1.0500,
+                1.0520,
+                1.0490,
+                1.0510,
+                2500,
+            ),
+            (
+                "GBP/USD",
+                datetime.now() - timedelta(minutes=30),
+                1.2150,
+                1.2160,
+                1.2140,
+                1.2155,
+                800,
+            ),
         ]
-        cursor.executemany("""
+        cursor.executemany(
+            """
         INSERT INTO market_data (symbol, timestamp, open_price, high_price, low_price, close_price, volume)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, sample_data)
+        """,
+            sample_data,
+        )
 
     cursor.execute("SELECT COUNT(*) FROM trading_pairs")
     if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO trading_pairs (symbol, base_currency, quote_currency, is_active) VALUES (?, ?, ?, ?)",
-                       ('EUR/USD', 'EUR', 'USD', 1))
+        cursor.execute(
+            "INSERT INTO trading_pairs (symbol, base_currency, quote_currency, is_active) VALUES (?, ?, ?, ?)",
+            ("EUR/USD", "EUR", "USD", 1),
+        )
 
     cursor.execute("SELECT COUNT(*) FROM users")
     if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO users (username, email, is_active) VALUES (?, ?, ?)",
-                       ('testuser', 'test@example.com', 1))
+        cursor.execute(
+            "INSERT INTO users (username, email, is_active) VALUES (?, ?, ?)",
+            ("testuser", "test@example.com", 1),
+        )
 
     conn.commit()
     conn.close()
 
+
 # Initialize the table on startup
 initialize_market_data_table()
+
 
 @app.get("/api/v1/market-data/{symbol:path}/{timeframe}")
 async def get_historical_market_data(symbol: str, timeframe: str):
@@ -227,24 +302,30 @@ async def get_historical_market_data(symbol: str, timeframe: str):
     cursor = conn.cursor()
 
     time_delta = None
-    if timeframe.upper() == '1H':
+    if timeframe.upper() == "1H":
         time_delta = timedelta(hours=1)
-    elif timeframe.upper() == '4H':
+    elif timeframe.upper() == "4H":
         time_delta = timedelta(hours=4)
-    elif timeframe.upper() == '1D':
+    elif timeframe.upper() == "1D":
         time_delta = timedelta(days=1)
 
     if not time_delta:
-        return JSONResponse(status_code=400, content={"error": "Invalid timeframe. Use '1H', '4H', or '1D'."})
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid timeframe. Use '1H', '4H', or '1D'."},
+        )
 
     start_time = datetime.now() - time_delta
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT timestamp, open_price, high_price, low_price, close_price, volume
         FROM market_data
         WHERE symbol = ? AND timestamp >= ?
         ORDER BY timestamp DESC
-    """, (symbol, start_time))
+    """,
+        (symbol, start_time),
+    )
 
     data = cursor.fetchall()
     conn.close()
@@ -252,9 +333,8 @@ async def get_historical_market_data(symbol: str, timeframe: str):
     return {
         "symbol": symbol,
         "timeframe": timeframe,
-        "data": [dict(row) for row in data]
+        "data": [dict(row) for row in data],
     }
-
 
 
 @app.get("/trading-pairs")
@@ -262,22 +342,21 @@ async def get_trading_pairs():
     try:
         conn = sqlite3.connect("genxdb_fx.db")
         cursor = conn.cursor()
-        cursor.execute("SELECT symbol, base_currency, quote_currency FROM trading_pairs WHERE is_active = 1")
+        cursor.execute(
+            "SELECT symbol, base_currency, quote_currency FROM trading_pairs WHERE is_active = 1"
+        )
         pairs = cursor.fetchall()
         conn.close()
-        
+
         return {
             "trading_pairs": [
-                {
-                    "symbol": pair[0],
-                    "base_currency": pair[1],
-                    "quote_currency": pair[2]
-                }
+                {"symbol": pair[0], "base_currency": pair[1], "quote_currency": pair[2]}
                 for pair in pairs
             ]
         }
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
+
 
 @app.get("/users")
 async def get_users():
@@ -287,28 +366,27 @@ async def get_users():
         cursor.execute("SELECT username, email, is_active FROM users")
         users = cursor.fetchall()
         conn.close()
-        
+
         return {
             "users": [
-                {
-                    "username": user[0],
-                    "email": user[1],
-                    "is_active": bool(user[2])
-                }
+                {"username": user[0], "email": user[1], "is_active": bool(user[2])}
                 for user in users
             ]
         }
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+
 @app.get("/mt5-info")
 async def get_mt5_info():
     return {
         "login": os.getenv("MT5_LOGIN", "default_login"),
         "server": os.getenv("MT5_SERVER", "default_server"),
-        "status": "configured"
+        "status": "configured",
     }
+
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8080)
