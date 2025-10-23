@@ -1,0 +1,41 @@
+[flake8]
+# Exclude third-party packages and virtual environments
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    env,
+    ENV,
+    build,
+    dist,
+    *.egg-info,
+    .pytest_cache,
+    .mypy_cache,
+    node_modules,
+    forexconnect_env_37,
+    */site-packages/*,
+    */lib/python*/,
+    */Scripts/*,
+    */bin/*
+
+# Maximum line length (matching Black's default)
+max-line-length = 88
+
+# Extend default ignore list
+# E203: whitespace before ':' (conflicts with Black)
+# E501: line too long (handled by Black)
+# W503: line break before binary operator (conflicts with Black)
+extend-ignore = E203,E501,W503
+
+# Maximum complexity
+max-complexity = 10
+
+# Show source code for errors
+show-source = True
+
+# Count errors
+count = True
+
+# Show statistics
+statistics = True
