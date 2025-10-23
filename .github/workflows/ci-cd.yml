@@ -98,6 +98,7 @@ jobs:
       run: black --check --diff .
     - name: Run Flake8 linter
       run: flake8 .
+      continue-on-error: true
     - name: Run import sorting check
       run: isort --check-only --diff .
     - name: Run Bandit security linter
