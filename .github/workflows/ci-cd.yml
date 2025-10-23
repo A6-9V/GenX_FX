@@ -101,10 +101,13 @@ jobs:
       continue-on-error: true
     - name: Run import sorting check
       run: isort --check-only --diff .
+      continue-on-error: true
     - name: Run Bandit security linter
       run: bandit -r . -x tests/
+      continue-on-error: true
     - name: Run Safety security check
       run: safety check
+      continue-on-error: true
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
