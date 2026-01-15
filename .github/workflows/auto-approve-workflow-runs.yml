@@ -1,0 +1,91 @@
+name: Auto-approve workflow runs (trusted PRs)
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: write
+
+jobs:
+  approve-workflow-runs:
+    name: Approve pending workflow runs
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.draft == false }}
+
+    steps:
+      - name: Approve runs awaiting maintainer approval
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const author = pr.user?.login;
+            const headSha = pr.head?.sha;
+            const isFork = pr.head?.repo?.fork === true;
+            const authorAssociation = pr.author_association;
+
+            core.info(`PR #${pr.number} by ${author}; fork=${isFork}; headSha=${headSha}`);
+
+            if (!author || !headSha) {
+              core.info("Missing PR author or head SHA; nothing to do.");
+              return;
+            }
+
+            // Only approve runs for trusted collaborators (write/maintain/admin).
+            // This prevents auto-approving arbitrary fork PRs from untrusted users.
+            let perm = "none";
+            try {
+              const resp = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner,
+                repo,
+                username: author,
+              });
+              perm = resp.data?.permission ?? "none";
+            } catch (e) {
+              core.info(`Could not determine collaborator permission for ${author}: ${e.message}`);
+            }
+
+            const trustedPerms = new Set(["admin", "maintain", "write"]);
+            const trustedAssociations = new Set(["MEMBER", "OWNER", "COLLABORATOR"]);
+            const isTrusted =
+              trustedPerms.has(perm) || trustedAssociations.has(authorAssociation);
+
+            if (!isTrusted) {
+              core.info(
+                `Not approving runs: ${author} permission='${perm}', association='${authorAssociation}'.`
+              );
+              return;
+            }
+
+            // List workflow runs for the PR head SHA and approve any that are awaiting approval.
+            const runs = await github.paginate(
+              github.rest.actions.listWorkflowRunsForRepo,
+              {
+                owner,
+                repo,
+                per_page: 100,
+                head_sha: headSha,
+              },
+              (response) => response.data.workflow_runs
+            );
+
+            const actionRequired = runs.filter((r) => r.status === "action_required");
+            core.info(`Found ${actionRequired.length} workflow run(s) awaiting approval.`);
+
+            for (const run of actionRequired) {
+              core.info(`Approving run_id=${run.id}, name='${run.name}', workflow='${run.workflow_id}'`);
+              try {
+                await github.rest.actions.approveWorkflowRun({
+                  owner,
+                  repo,
+                  run_id: run.id,
+                });
+              } catch (e) {
+                core.info(`Failed to approve run_id=${run.id}: ${e.message}`);
+              }
+            }
