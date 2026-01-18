@@ -416,6 +416,10 @@ and research purposes. Use at your own risk.
 - **Issues**: https://github.com/Mouy-leng/GenX_FX/issues
 - **Discussions**: https://github.com/Mouy-leng/GenX_FX/discussions
 
+## 👤 Author / Social
+
+- **Reddit**: `https://www.reddit.com/user/Bright-Nectarine2433/`
+
 ## 🆘 Support
 
 - Use `./genx help-all` for complete command reference
