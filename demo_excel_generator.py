@@ -278,6 +278,7 @@ class ForexSignalGenerator:
                 "Stop_Loss",
                 "Take_Profit",
                 "Lot_Size",
+                "Confidence",
                 "Timestamp",
             ]
         ].copy()
@@ -290,6 +291,7 @@ class ForexSignalGenerator:
             "StopLoss",
             "TakeProfit",
             "LotSize",
+            "Confidence",
             "Timestamp",
         ]
 

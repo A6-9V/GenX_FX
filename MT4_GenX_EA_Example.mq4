@@ -81,6 +81,7 @@ void ReadAndProcessSignals()
         string stopLossStr = FileReadString(fileHandle);
         string takeProfitStr = FileReadString(fileHandle);
         string lotSizeStr = FileReadString(fileHandle);
+        string confidenceStr = FileReadString(fileHandle);
         string timestamp = FileReadString(fileHandle);
         
         // Skip empty lines
