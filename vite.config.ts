@@ -10,7 +10,8 @@ export default defineConfig({
   plugins: [react()],
   root: 'client',
   build: {
-    outDir: 'dist'
+    outDir: '../services/server/public',
+    emptyOutDir: true,
   },
   server: {
     host: '0.0.0.0',

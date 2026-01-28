@@ -7,6 +7,7 @@ import { setupVite, serveStatic } from './vite.js';
 import { registerRoutes } from './routes.js';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -28,6 +29,12 @@ app.use(cors({
     ? false 
     : ['http://localhost:3000', 'http://0.0.0.0:3000'],
   credentials: true
+}));
+
+// Proxy for Python backend API
+app.use('/api/v1', createProxyMiddleware({
+  target: 'http://localhost:8000',
+  changeOrigin: true,
 }));
 
 app.use(express.json({ limit: '10mb' }));
@@ -92,7 +99,7 @@ wss.on('connection', (ws, req) => {
 
 // Setup Vite in development or serve static files in production
 if (process.env.NODE_ENV === 'production') {
-  serveStatic(app, join(__dirname, '..', 'dist', 'public'));
+  serveStatic(app);
 } else {
   await setupVite(app, server);
 }
