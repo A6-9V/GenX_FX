@@ -33,6 +33,28 @@ def mock_auth():
         yield mock_user
 
 
+def get_auth_headers():
+    """Get authentication headers for tests"""
+    response = client.post(
+        "/token", data={"username": "testuser", "password": "testpassword"}
+    )
+    if response.status_code != 200:
+        return {}
+    token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+def test_token_endpoint():
+    """Test token endpoint"""
+    response = client.post(
+        "/token", data={"username": "testuser", "password": "testpassword"}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert data["token_type"] == "bearer"
+
+
 def test_root_endpoint():
     """Test root endpoint"""
     response = client.get("/")
@@ -165,8 +187,11 @@ def test_get_historical_market_data_invalid_timeframe():
 
 def test_post_predictions():
     """Test post_predictions endpoint"""
+    headers = get_auth_headers()
     response = client.post(
-        "/api/v1/predictions/", json={"symbol": "EURUSD", "action": "buy"}
+        "/api/v1/predictions/",
+        json={"symbol": "EURUSD", "action": "buy"},
+        headers=headers,
     )
     assert response.status_code == 200
     assert response.json() == {

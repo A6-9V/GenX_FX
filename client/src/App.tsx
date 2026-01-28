@@ -5,15 +5,16 @@ function App() {
   const [apiHealth, setApiHealth] = useState<any>(null)
 
   useEffect(() => {
-    const API = 'http://localhost:8081'
+    // Uses Vite proxy to route to correct backend
+    const API = ''
 
-    // Test Node.js server health
+    // Test Node.js server health (proxied to port 5000)
     fetch(`${API}/health`)
       .then(res => res.json())
       .then(data => setHealth(data))
       .catch(err => console.error('Node.js server error:', err))
 
-    // Test Python API health  
+    // Test Python API health (proxied to port 8000)
     fetch(`${API}/api/v1/health`)
       .then(res => res.json())
       .then(data => setApiHealth(data))

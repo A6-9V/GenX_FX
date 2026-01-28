@@ -18,6 +18,17 @@ from api.main import app
 client = TestClient(app)
 
 
+def get_auth_headers():
+    """Get authentication headers for tests"""
+    response = client.post(
+        "/token", data={"username": "testuser", "password": "testpassword"}
+    )
+    if response.status_code != 200:
+        return {}
+    token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
 class TestEdgeCases:
     """Comprehensive edge case testing for the GenX FX API"""
 
@@ -75,17 +86,21 @@ class TestEdgeCases:
         }
 
         # This should work if the endpoint exists
-        response = client.post("/api/v1/predictions/predict", json=large_data)
+        response = client.post(
+            "/api/v1/predictions/predict", json=large_data, headers=get_auth_headers()
+        )
         # We expect either success or a structured error, not a crash
         assert response.status_code in [200, 400, 404, 422, 500]
 
     def test_malformed_json_handling(self):
         """Test handling of malformed JSON requests"""
         # Test with invalid JSON - using correct endpoint
+        headers = get_auth_headers()
+        headers["content-type"] = "application/json"
         response = client.post(
             "/api/v1/predictions/",
             content="{ invalid json }",
-            headers={"content-type": "application/json"},
+            headers=headers,
         )
         # Auth middleware may catch this first, so 401/403 is also acceptable
         assert response.status_code in [400, 401, 403, 422]
@@ -101,7 +116,9 @@ class TestEdgeCases:
         ]
 
         for test_data in test_cases:
-            response = client.post("/api/v1/predictions/", json=test_data)
+            response = client.post(
+                "/api/v1/predictions/", json=test_data, headers=get_auth_headers()
+            )
             # Should handle gracefully, not crash (auth may return 401/403)
             assert response.status_code in [200, 400, 401, 403, 422, 500]
             if response.status_code >= 400:
@@ -121,7 +138,9 @@ class TestEdgeCases:
             },
         }
 
-        response = client.post("/api/v1/predictions/", json=special_data)
+        response = client.post(
+            "/api/v1/predictions/", json=special_data, headers=get_auth_headers()
+        )
         assert response.status_code in [200, 400, 401, 403, 422, 500]
 
     def test_numeric_edge_cases(self):
@@ -352,7 +371,11 @@ class TestErrorHandling:
 
             mock_predict.side_effect = slow_predict
 
-            response = client.post("/api/v1/predictions/", json={"symbol": "BTCUSDT"})
+            response = client.post(
+                "/api/v1/predictions/",
+                json={"symbol": "BTCUSDT"},
+                headers=get_auth_headers(),
+            )
             # Should complete even with delay
             assert response.status_code in [200, 400, 404, 422, 500]
 
