@@ -1,11 +1,17 @@
-from fastapi import FastAPI, Request, status, Depends
+from fastapi import FastAPI, Request, status, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from contextlib import asynccontextmanager
 import sqlite3
 import os
 from datetime import datetime, timedelta
+from typing import Optional
+from pydantic import BaseModel
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+
 from api.services.ml_service import MLService
 from api.routers import communication
 from api.database.connection import (
@@ -21,6 +27,47 @@ import logging
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Auth Config
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-genx-fx-2025")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now() + expires_delta
+    else:
+        expire = datetime.now() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except JWTError:
+        raise credentials_exception
+    return token_data
 
 
 @asynccontextmanager
@@ -83,7 +130,7 @@ async def root():
         "status": "active",
         "docs": "/docs",
         "github": "Mouy-leng",
-        "repository": "https://github.com/Mouy-leng/GenX_FX.git",
+        "repository": "https://github.com/A6-9V/GenX_FX",
     }
 
 
@@ -108,6 +155,24 @@ async def health_check():
     }
 
 
+@app.post("/token", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    # Mock authentication for now, accepting any username/password
+    # In production, verify against DB
+    user_authenticated = True
+    if not user_authenticated:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": form_data.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
 @app.get("/api/v1/health")
 async def api_health_check():
     return {
@@ -117,7 +182,7 @@ async def api_health_check():
     }
 
 
-@app.get("/api/v1/predictions")
+@app.get("/api/v1/predictions", dependencies=[Depends(get_current_user)])
 async def get_predictions():
     return {
         "predictions": [],
@@ -126,7 +191,7 @@ async def get_predictions():
     }
 
 
-@app.post("/api/v1/predictions/")
+@app.post("/api/v1/predictions/", dependencies=[Depends(get_current_user)])
 async def post_predictions(request: Request):
     try:
         data = await request.json()
@@ -139,7 +204,7 @@ async def post_predictions(request: Request):
         return JSONResponse(status_code=400, content={"detail": "Malformed JSON"})
 
 
-@app.post("/api/v1/predictions/predict")
+@app.post("/api/v1/predictions/predict", dependencies=[Depends(get_current_user)])
 async def predict(request: Request):
     data = await request.json()
     service = MLService()
@@ -389,4 +454,4 @@ async def get_mt5_info():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
