@@ -36,12 +36,15 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
 
+
 class TokenData(BaseModel):
     username: Optional[str] = None
+
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
@@ -52,6 +55,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
@@ -242,8 +246,7 @@ def initialize_market_data_table():
     cursor = conn.cursor()
 
     # Create table if it doesn't exist
-    cursor.execute(
-        """
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS market_data (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         symbol TEXT NOT NULL,
@@ -254,10 +257,8 @@ def initialize_market_data_table():
         close_price REAL,
         volume REAL
     );
-    """
-    )
-    cursor.execute(
-        """
+    """)
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS trading_pairs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         symbol TEXT NOT NULL UNIQUE,
@@ -265,18 +266,15 @@ def initialize_market_data_table():
         quote_currency TEXT NOT NULL,
         is_active BOOLEAN NOT NULL CHECK (is_active IN (0, 1))
     );
-    """
-    )
-    cursor.execute(
-        """
+    """)
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
         email TEXT NOT NULL UNIQUE,
         is_active BOOLEAN NOT NULL CHECK (is_active IN (0, 1))
     );
-    """
-    )
+    """)
 
     # Check if there's any data
     cursor.execute("SELECT COUNT(*) FROM market_data")

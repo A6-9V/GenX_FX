@@ -13,7 +13,6 @@ exclude =
     .pytest_cache,
     .mypy_cache,
     node_modules,
-    forexconnect_env_37,
     */site-packages/*,
     */lib/python*/,
     */Scripts/*,
