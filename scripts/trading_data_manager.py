@@ -23,7 +23,6 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterable, Optional, Tuple
 
-
 try:
     import pandas as pd
 except Exception:  # pragma: no cover
@@ -316,7 +315,14 @@ def run_daily(*, root: Path, policy: RetentionPolicy, dry_run: bool) -> RunStats
     trash_dir = root / "trash"
     maintenance_logs_dir = root / "maintenance_logs"
 
-    for d in (logs_dir, raw_csv_dir, reports_dir, archive_dir, trash_dir, maintenance_logs_dir):
+    for d in (
+        logs_dir,
+        raw_csv_dir,
+        reports_dir,
+        archive_dir,
+        trash_dir,
+        maintenance_logs_dir,
+    ):
         _ensure_dir(d, dry_run=dry_run)
 
     log_path = maintenance_logs_dir / f"{_utcnow().strftime('%Y-%m-%d')}.jsonl"
@@ -485,4 +491,3 @@ def main(argv: Optional[list[str]] = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
