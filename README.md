@@ -453,3 +453,11 @@ and research purposes. Use at your own risk.
 ---
 
 **🔒 Security is our top priority. Report vulnerabilities privately following our [Security Policy](SECURITY.md).**
+
+## 🔄 Built-in Connection & CI/CD
+This repository is part of the integrated CI/CD network. It uses a centralized `GH_TOKEN` for automated operations, including:
+- Automated synchronization between GitHub and external remotes.
+- Automated security audits and performance optimizations.
+- 24/7 VPS deployment and health monitoring via GitHub Actions.
+
+The CI/CD pipeline has been reorganized to improve reliability and security. All automated updates are now managed through the centralized organization-level secrets.
