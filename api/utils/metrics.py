@@ -21,7 +21,7 @@ REGISTRY = CollectorRegistry()
 
 # Application info
 APP_INFO = Info("genx_fx_app", "Application information", registry=REGISTRY)
-APP_INFO.info({"version": "1.0.0", "name": "GenX_FX", "organization": "A6-9V"})
+APP_INFO.info({"version": "1.2.0", "name": "GenX_FX", "organization": "A6-9V"})
 
 # HTTP Request Metrics
 HTTP_REQUESTS_TOTAL = Counter(
