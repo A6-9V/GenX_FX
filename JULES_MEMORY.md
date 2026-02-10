@@ -5,14 +5,14 @@
 **Project**: A6-9V GenX FX Trading Platform
 **Repository**: https://github.com/A6-9V/GenX_FX
 **Last Updated**: October 14, 2025
-**Current Version**: v1.1.3
+**Current Version**: v1.2.0
 
 ## ✅ Completed Phases
 
 ### Phase 1: Foundation Setup
 - ✅ Secure secrets management system
 - ✅ GitHub repository secrets configuration
-- ✅ Docker container infrastructure (v1.1.3)
+- ✅ Docker container infrastructure (v1.2.0)
 - ✅ CI/CD pipeline with GitHub Actions
 - ✅ Environment configurations (dev/staging/prod)
 
@@ -71,7 +71,7 @@
 ## 🚀 Deployment Status
 
 ### Development
-- Container: `lengkundee01/genx-fx:v1.1.3`
+- Container: `lengkundee01/genx-fx:v1.2.0`
 - Health: ✅ API running, database connected
 - Environment: SQLite, development mode
 
@@ -185,7 +185,7 @@ git push origin main
 **Git**: Repository synced to GitHub main branch
 
 **Last Actions**:
-1. Built and tested container v1.1.3
+1. Built and tested container v1.2.0
 2. Committed all changes to GitHub
 3. Ready to continue with authentication & security + monitoring
 

@@ -10,7 +10,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="amp-cli",
-    version="1.0.0",
+    version="1.2.0",
     author="GenX Trading Platform",
     author_email="support@genx-trading.com",
     description="Automated Model Pipeline CLI for GenX Trading Platform",

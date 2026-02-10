@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
             "API server started successfully",
             additional_data={
                 "startup_time": datetime.utcnow().isoformat(),
-                "version": "1.0.0",
+                "version": "1.2.0",
             },
         )
 
@@ -85,7 +85,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="A6-9V GenX FX Trading API",
     description="Advanced AI-powered Forex trading system API with ML signal generation",
-    version="1.0.0",
+    version="1.2.0",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
@@ -138,7 +138,7 @@ async def health_check():
     health_data = {
         "status": "healthy" if db_status == "healthy" else "degraded",
         "timestamp": datetime.utcnow().isoformat(),
-        "version": "1.0.0",
+        "version": "1.2.0",
         "services": {
             "database": db_status,
             "api": "healthy",
@@ -163,7 +163,7 @@ async def root():
     """API root endpoint with basic information"""
     return {
         "service": "A6-9V GenX FX Trading API",
-        "version": "1.0.0",
+        "version": "1.2.0",
         "status": "operational",
         "documentation": {
             "swagger": "/docs",
@@ -186,7 +186,7 @@ async def api_info():
     return {
         "api": {
             "name": "GenX FX Trading API",
-            "version": "1.0.0",
+            "version": "1.2.0",
             "organization": "A6-9V",
             "description": "Advanced AI-powered Forex trading system",
         },
