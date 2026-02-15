@@ -391,7 +391,7 @@ export function registerRoutes(app: Express) {
         stopLoss: 1.0950,
         targetPrice: 1.1050,
         confidence: 0.85,
-        reasoning: 'Test signal from GenZ Trading Platform'
+        reasoning: 'Test signal from GenX Trading Platform'
       };
 
       let sentCount = 0;
