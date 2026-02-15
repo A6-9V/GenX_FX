@@ -92,7 +92,7 @@ wss.on('connection', (ws, req) => {
   // Send welcome message
   ws.send(JSON.stringify({
     type: 'welcome',
-    message: 'Connected to GenZ Trading Bot Pro',
+    message: 'Connected to GenX Trading Bot Pro',
     timestamp: new Date().toISOString()
   }));
 });

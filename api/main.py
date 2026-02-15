@@ -97,7 +97,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="GenX-FX Trading Platform API",
     description="Trading platform with ML-powered predictions and multi-agent communication",
-    version="1.1.0",
+    version="1.2.0",
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,
@@ -130,7 +130,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 async def root():
     return {
         "message": "GenX-FX Trading Platform API",
-        "version": "1.0.0",
+        "version": "1.2.0",
         "status": "active",
         "docs": "/docs",
         "github": "Mouy-leng",
@@ -148,7 +148,7 @@ async def health_check():
     return {
         "status": overall_status,
         "timestamp": datetime.now().isoformat(),
-        "version": "1.1.0",
+        "version": "1.2.0",
         "environment": os.getenv("APP_ENV", "development"),
         "services": {
             "api": "active",
